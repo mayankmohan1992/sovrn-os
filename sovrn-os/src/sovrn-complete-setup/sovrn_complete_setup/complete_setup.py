@@ -1,4 +1,5 @@
-"""First-boot GTK4/Adwaita dialog for optional package installation."""
+"""First-boot GTK4/Adwaita dialog for optional package installation.
+Launched via XDG autostart (runs as user). Uses pkexec for privilege elevation."""
 import sys
 import os
 import subprocess
@@ -8,6 +9,8 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, GLib
+
+SETUP_COMPLETE_MARKER = "/var/lib/sovrn/setup-complete"
 
 PACKAGE_GROUPS = {
     "Office": ["libreoffice", "evince", "libreoffice-gtk3"],
@@ -37,6 +40,10 @@ class CompleteSetup(Adw.Application):
         self.install_running = False
 
     def do_activate(self):
+        if os.path.exists(SETUP_COMPLETE_MARKER):
+            self.quit()
+            return
+
         window = Adw.ApplicationWindow(application=self)
         window.set_title("Complete Sovrn OS Installation")
         window.set_default_size(600, 500)
@@ -118,13 +125,13 @@ class CompleteSetup(Adw.Application):
         def do_install():
             try:
                 subprocess.run(
-                    ["apt-get", "update"],
+                    ["pkexec", "apt-get", "update"],
                     check=True,
                     capture_output=True,
                     timeout=120,
                 )
                 subprocess.run(
-                    ["apt-get", "install", "-y", "--no-install-recommends"] + pkgs,
+                    ["pkexec", "apt-get", "install", "-y", "--no-install-recommends"] + pkgs,
                     check=True,
                     capture_output=True,
                     timeout=600,
@@ -179,7 +186,7 @@ class CompleteSetup(Adw.Application):
     def mark_complete():
         try:
             os.makedirs("/var/lib/sovrn", exist_ok=True)
-            with open("/var/lib/sovrn/setup-complete", "w") as f:
+            with open(SETUP_COMPLETE_MARKER, "w") as f:
                 f.write("complete")
         except Exception:
             pass

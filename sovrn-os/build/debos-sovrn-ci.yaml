@@ -6,11 +6,6 @@
 
 architecture: {{ $architecture }}
 
-fakemachine:
-  memory: 5120
-  swap: true
-  kvm: true
-
 actions:
   # ── Stage 1: Debootstrap ──
   - action: debootstrap
@@ -47,7 +42,6 @@ actions:
       - systemd-sysv
       - dbus
       - linux-image-amd64
-      - linux-headers-amd64
       - firmware-linux
       - initramfs-tools
       - grub2
@@ -81,7 +75,7 @@ actions:
       - fonts-inter
       - fonts-jetbrains-mono
       - desktop-base
-      - policykit-1
+      - polkitd
       - accountsservice
       - gnome-software
       - packagekit
@@ -97,9 +91,8 @@ actions:
       - network-manager
       - pipewire
       - wireplumber
-      - pulseaudio
-      - libpipewire-0.3-0
-      - libwireplumber-0.3-0
+      - libpipewire-0.3-0t64
+      - libwireplumber-0.5-0
 
   - action: run
     command: |
@@ -240,7 +233,7 @@ actions:
       systemctl enable gdm.service 2>/dev/null || true
       systemctl enable nftables.service 2>/dev/null || true
       systemctl enable unbound.service 2>/dev/null || true
-      systemctl enable sovrn-complete-setup.service 2>/dev/null || true
+      # sovrn-complete-setup launched via XDG autostart .desktop file
 
   # ── Configure nftables ──
   - action: run
@@ -267,10 +260,11 @@ actions:
       cp /usr/share/backgrounds/sovrn/sovrn-default.png /usr/share/backgrounds/sovrn/sovrn-default-dark.png 2>/dev/null || true
       cp /usr/share/backgrounds/sovrn/sovrn-default.png /usr/share/backgrounds/sovrn/sovrn-screensaver.png 2>/dev/null || true
 
-  # ── OOBE first-boot marker ──
+  # ── First-boot markers ──
   - action: run
     command: |
       rm -f /var/lib/sovrn/oobe-complete
+      rm -f /var/lib/sovrn/setup-complete
 
   # ── Final cleanup ──
   - action: run

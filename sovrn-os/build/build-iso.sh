@@ -121,6 +121,21 @@ cp "$PROJECT_DIR"/src/gnome-customization/dconf-db-sovrn.ini "$OVERLAY_DIR/gnome
     mkdir -p "$OVERLAY_DIR/gnome/etc/dconf/db" && \
     cp "$PROJECT_DIR"/src/gnome-customization/dconf-db-sovrn.ini "$OVERLAY_DIR/gnome/etc/dconf/db/sovrn"
 
+# XDG autostart for sovrn-complete-setup (runs as user, has display access for GTK4)
+mkdir -p "$OVERLAY_DIR/gnome/etc/xdg/autostart"
+cat > "$OVERLAY_DIR/gnome/etc/xdg/autostart/sovrn-complete-setup.desktop" <<'DESKTOP'
+[Desktop Entry]
+Name=Sovrn OS Setup
+Comment=Complete Sovrn OS installation (optional packages)
+Exec=/usr/bin/sovrn-complete-setup
+Type=Application
+Categories=System;Setup;
+StartupNotify=true
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=5
+OnlyShowIn=GNOME;
+DESKTOP
+
 mkdir -p "$OVERLAY_DIR/etc/etc/sovrn/scripts"
 cp "$PROJECT_DIR"/scripts/bootstrap-ca.sh "$OVERLAY_DIR/etc/etc/sovrn/scripts/"
 cp "$PROJECT_DIR"/src/nftables/sovrn.nft "$OVERLAY_DIR/etc/etc/sovrn/scripts/" 2>/dev/null || true
@@ -198,6 +213,7 @@ check_dir "$OVERLAY_DIR/systemd/etc/systemd/system"
 check_dir "$OVERLAY_DIR/pwa-dist/var/lib/sovrn/pwa-dist"
 check_dir "$OVERLAY_DIR/gnome/etc/dconf/profile"
 check_dir "$OVERLAY_DIR/gnome/etc/dconf/db"
+check_file "$OVERLAY_DIR/gnome/etc/xdg/autostart/sovrn-complete-setup.desktop"
 check_dir "$OVERLAY_DIR/python-dist/usr/lib/python3/dist-packages"
 check_dir "$OVERLAY_DIR/python-dist/usr/bin"
 for bin in sovrnd sovrn-auth sovrn-monitor sovrn-notify-bridge sovrn-complete-setup; do
@@ -227,7 +243,7 @@ check_file "$OVERLAY_DIR/etc/etc/unbound/sovrn.conf"
 check_file "$OVERLAY_DIR/etc/etc/sovrn/scripts/bootstrap-ca.sh"
 
 # Check systemd units (at least the critical ones)
-for unit in sovrn.target sovrnd.service sovrn-dht.service sovrn-identity.service sovrn-presence.service sovrn-feed.service sovrn-message-queue.service sovrn-auth.service sovrn-monitor.service sovrn-notify-bridge.service sovrn-cdn-agent.service yggdrasil.service caddy.service sovrn-ca-bootstrap.service zram-setup.service; do
+for unit in sovrn.target sovrnd.service sovrn-dht.service sovrn-identity.service sovrn-presence.service sovrn-feed.service sovrn-message-queue.service sovrn-auth.service sovrn-monitor.service sovrn-notify-bridge.service sovrn-complete-setup.service sovrn-cdn-agent.service yggdrasil.service caddy.service sovrn-ca-bootstrap.service zram-setup.service; do
     check_file "$OVERLAY_DIR/systemd/etc/systemd/system/$unit"
 done
 
@@ -315,6 +331,6 @@ else
         err "debos not found. Install: apt install debos"
     fi
     # Use --disable-fakemachine to avoid VM memory overhead on RAM-constrained CI runners
-    # The -e flag ensures the build runs directly on the host (needs sudo for debootstrap)
-    debos --disable-fakemachine build/$RECIPE || err "Debos build failed"
+    # sudo is required for debootstrap (runs natively on host, not in VM)
+    sudo debos --disable-fakemachine "$PROJECT_DIR/build/$RECIPE" || err "Debos build failed"
 fi

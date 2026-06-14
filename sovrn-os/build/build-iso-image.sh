@@ -117,7 +117,7 @@ build_image() {
 set default=0
 set timeout=5
 
-loadfont ($root)/boot/grub/fonts/unicode.pf2 2>/dev/null || true
+loadfont ($root)/boot/grub/fonts/unicode.pf2
 set gfxmode=auto
 insmod efi_gop
 insmod efi_uga

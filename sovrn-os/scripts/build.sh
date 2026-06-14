@@ -82,6 +82,10 @@ build_python() {
     # sovrn-notify-bridge
     cd "$PROJECT_DIR/src/sovrn-notify-bridge"
     pip3 install --target "$BUILD_DIR/lib/sovrn-notify-bridge" . 2>&1 | tail -3 || warn "sovrn-notify-bridge pip install failed"
+    
+    # sovrn-complete-setup
+    cd "$PROJECT_DIR/src/sovrn-complete-setup"
+    pip3 install --target "$BUILD_DIR/lib/sovrn-complete-setup" . 2>&1 | tail -3 || warn "sovrn-complete-setup pip install failed"
 }
 
 # ── Build PWA ───────────────────────────────────────────────────

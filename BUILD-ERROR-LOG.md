@@ -131,3 +131,57 @@ Chronological record of every error and fix.
 - **Error:** `loadfont=($root)/boot/grub/fonts/unicode.pf2` uses `=` instead of a space (`loadfont` is a GRUB command, not a variable assignment). Silently ignored due to `2>/dev/null || true`.
 - **Fix:** Changed `loadfont=` to `loadfont ` (space instead of `=`).
 - **Status:** Resolved
+
+### Error #22: CI Run #1 — Caddy binary validation fails in build-iso.sh
+- **Phase:** Phase 6 — CI build
+- **Error:** `build-iso.sh` checks for `caddy` binary in overlay `bin/usr/bin/` but caddy is installed via apt inside debos, not pre-built.
+- **Fix:** Added `caddy` to `SYSTEM_PACKAGES` skip list in cross-reference validation.
+- **Status:** Resolved
+
+### Error #23: CI Run #2 — Caddy binary validation still fails (different check)
+- **Phase:** Phase 6 — CI build
+- **Error:** Binary validation loop checks all `ExecStart` paths but caddy still flagged.
+- **Fix:** Also skipped caddy in the main binary check loop.
+- **Status:** Resolved
+
+### Error #24: CI Run #3 — Debos OOM in fakemachine
+- **Phase:** Phase 6 — CI build
+- **Error:** Debos fakemachine runs a VM that consumes all 7 GB RAM on the GitHub runner.
+- **Fix:** Added `sudo` to debos command (Run #3). Still OOM. Switched to `--disable-fakemachine` in Run #7.
+- **Status:** Resolved
+
+### Error #25: CI Run #4 — Fakemachine OOM with memory limit
+- **Phase:** Phase 6 — CI build
+- **Error:** `--memory 4096` still OOMs (fakemachine overhead exceeds available RAM).
+- **Fix:** Tried `--memory 5120` + swap (Run #5-6), still OOM. Switched to `--disable-fakemachine`.
+- **Status:** Resolved
+
+### Error #26: CI Run #6 — Python package structure broken
+- **Phase:** Phase 6 — CI build
+- **Error:** `pip install -e .` fails because Python packages have nested `src/` directory structure (flat install finds nothing).
+- **Fix:** Changed to flat layout for all 5 Python packages (no nested `src/`).
+- **Status:** Resolved
+
+### Error #27: CI Run #7 — Microsoft apt repos return 403 Forbidden
+- **Phase:** Phase 6 — CI build
+- **Error:** `apt-get update` fails because `ubuntu-latest` runner has stale Microsoft repo files from a previous action.
+- **Fix:** Added pre-deletion of MS repo files before `sudo apt-get update` in CI workflow.
+- **Status:** Resolved
+
+### Error #28: CI Run #8 — Package `linux-firmware` not found
+- **Phase:** Phase 6 — CI build
+- **Error:** `linux-firmware` is an Ubuntu package name. Debian uses `firmware-linux`.
+- **Fix:** Changed `linux-firmware` → `firmware-linux` in debos recipe.
+- **Status:** Resolved
+
+### Error #29: CI Run #9 — Package `policykit-1` not found
+- **Phase:** Phase 6 — CI build
+- **Error:** `policykit-1` was renamed to `polkitd` in Debian trixie.
+- **Fix:** Changed `policykit-1` → `polkitd` in debos recipe.
+- **Status:** Resolved
+
+### Error #30: Comprehensive audit — 24 issues found (June 14)
+- **Phase:** Phase 7 — Comprehensive audit
+- **Error:** After 9 CI run failures, a full codebase audit found 24 issues: package name mismatches (libpipewire, libwireplumber, pulseaudio), systemd service design flaws (sovrn-complete-setup needs XDG autostart, not system service), build script bugs (missing sudo, relative path), stale overlays (yggdrasil, sovrnd), missing validation entries, GRUB shell constructs, and missing build steps.
+- **Fix:** All 24 issues catalogued and fixed in batch — see project-state.md for full list.
+- **Status:** Resolved
