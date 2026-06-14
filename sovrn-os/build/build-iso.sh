@@ -332,5 +332,9 @@ else
     fi
     # Use --disable-fakemachine to avoid VM memory overhead on RAM-constrained CI runners
     # sudo is required for debootstrap (runs natively on host, not in VM)
-    sudo debos --disable-fakemachine "$PROJECT_DIR/build/$RECIPE" || err "Debos build failed"
+    # --artifactdir ensures the pack output goes to $BUILD_DIR regardless of CWD
+    sudo debos \
+        --disable-fakemachine \
+        --artifactdir="$BUILD_DIR" \
+        "$PROJECT_DIR/build/$RECIPE" || err "Debos build failed"
 fi
