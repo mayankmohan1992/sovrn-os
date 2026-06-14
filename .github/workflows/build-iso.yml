@@ -86,12 +86,10 @@ jobs:
             sudo ./build/build-iso.sh --quick
           }
 
-      - name: Run image builder with diagnostics
+      - name: Build hybrid disk image
         working-directory: sovrn-os
         run: |
-          set -x
-          bash -x ./build/build-iso-image.sh 2>&1 || true
-          echo "--- exit code: $? ---"
+          sudo bash -x ./build/build-iso-image.sh
 
       - name: Quick smoke test
         working-directory: sovrn-os
@@ -109,12 +107,17 @@ jobs:
           name: sovrn-os-hybrid
           path: sovrn-os/build/sovrn-os-hybrid.img
           retention-days: 30
+          if-no-files-found: error
 
       - name: Print build summary
         run: |
           echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
-          du -sh sovrn-os/build/sovrn-os-hybrid.img | while read size name; do
-            echo "- Image: \`sovrn-os-hybrid.img\` (${size})" >> $GITHUB_STEP_SUMMARY
-          done
+          if [ -f sovrn-os/build/sovrn-os-hybrid.img ]; then
+            du -sh sovrn-os/build/sovrn-os-hybrid.img | while read size name; do
+              echo "- Image: \`sovrn-os-hybrid.img\` (${size})" >> $GITHUB_STEP_SUMMARY
+            done
+          else
+            echo "- Image: **NOT BUILT**" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "- Flash to USB: \`sudo dd if=sovrn-os-hybrid.img of=/dev/sdX bs=4M status=progress\`" >> $GITHUB_STEP_SUMMARY
           echo "- Test with QEMU: \`qemu-system-x86_64 -m 2048 -enable-kvm -cpu host -drive file=sovrn-os-hybrid.img,format=raw\`" >> $GITHUB_STEP_SUMMARY

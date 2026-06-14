@@ -38,7 +38,9 @@ check_prereqs() {
     for cmd in parted losetup grub-install mkfs.ext4 mkfs.fat xorriso mtools; do
         command -v "$cmd" >/dev/null 2>&1 || { warn "$cmd not found"; missing=1; }
     done
-    [ "$missing" -eq 1 ] && err "Install missing tools: apt install parted grub-pc-bin grub-efi-amd64-bin xorriso mtools"
+    if [ "$missing" -eq 1 ]; then
+        err "Install missing tools: apt install parted grub-pc-bin grub-efi-amd64-bin xorriso mtools"
+    fi
 }
 
 # ── Root check ─────────────────────────────────────────────────────
