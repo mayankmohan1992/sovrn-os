@@ -1,0 +1,15 @@
+sovrn-os (0.1.0-1) unstable; urgency=low
+
+  * Initial release of Sovrn OS
+  * Mesh services: DHT, Identity, Presence, Feed, Message Queue
+  * Central orchestrator: sovrnd (FastAPI on port 54771)
+  * CDN agent with Sia/IPFS/Filecoin support
+  * PWA hub (Preact) on port 54772
+  * OOBE wizard (GTK4/libadwaita)
+  * Yggdrasil mesh networking integration
+  * .sovrn TLD DNS resolution
+  * Self-signed CA bootstrap
+  * nftables firewall
+  - Caddy reverse proxy with JWT auth plugin
+
+ -- Sovrn OS Team <team@sovrn.os>  Fri, 06 Jun 2026 00:00:00 +0530

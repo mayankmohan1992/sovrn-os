@@ -1,0 +1,65 @@
+
+# Sovrn OS Caddy Configuration
+# Reverse proxy + static file serving + auth plugin
+
+{
+    # Global options
+    admin off
+    logs {
+        output file /var/log/sovrn/caddy-access.log
+        format console
+    }
+}
+
+# Main Sovrn Hub — PWA frontend + API
+localhost:54772, 127.0.0.1:54772 {
+    # Auth plugin
+    sovrn_auth {
+        jwt_secret {$SOVRN_JWT_SECRET}
+        jwt_algorithm HS256
+        skip_paths /api/auth /api/health /static
+    }
+
+    # API reverse proxy to sovrnd
+    handle /api/* {
+        reverse_proxy unix//var/lib/sovrn/sockets/sovrnd.sock
+    }
+
+    # WebSocket proxy
+    handle /ws {
+        reverse_proxy unix//var/lib/sovrn/sockets/sovrnd.sock
+    }
+
+    # PWA static files
+    handle {
+        root * /var/lib/sovrn/pwa-dist
+        file_server {
+            precompressed br gzip
+        }
+        try_files {path} /index.html
+    }
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy strict-origin-when-cross-origin
+        Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' ws: wss: https:; font-src 'self'"
+    }
+}
+
+# .sovrn TLD catch-all — serves user sites
+*.sovrn:80, *.sovrn:443 {
+    # TLS for .sovrn domains (self-signed CA)
+    tls internal {
+        on_demand
+    }
+
+    # Serve user content from CDN cache
+    handle {
+        root * /var/lib/sovrn/cdn/cache
+        file_server
+        try_files {path} /{args[0]}/index.html /index.html
+    }
+}

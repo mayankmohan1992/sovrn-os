@@ -1,0 +1,14 @@
+# Sovrn CDN Agent Configuration
+# Note: File moved from config/ to configs/ per repo structure
+
+sockets_dir = "/var/lib/sovrn/sockets"
+data_dir = "/var/lib/sovrn/cdn"
+cache_dir = "/var/lib/sovrn/cdn/cache"
+max_upload_mb = 100
+
+# CDN providers (v1: stub — no real providers configured)
+# [[providers]]
+# name = "cloudflare-r2"
+# api_key = ""
+# api_url = "https://api.cloudflare.com/client/v4"
+# enabled = false

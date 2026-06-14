@@ -1,0 +1,22 @@
+[Unit]
+Description=Sovrn Notify Bridge (Desktop Notifications)
+After=sovrnd.service
+Requires=sovrnd.service
+PartOf=sovrn.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sovrn-notify-bridge
+Restart=on-failure
+RestartSec=5
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/sovrn/sockets
+
+Environment=SOVRND_WS_URL=ws://127.0.0.1:54771/ws
+
+[Install]
+WantedBy=sovrn.target

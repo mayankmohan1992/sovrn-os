@@ -1,0 +1,251 @@
+{{- $architecture := "amd64" -}}
+{{- $suite := "trixie" -}}
+{{- $hostname := "sovrn" -}}
+{{- $username := "sovrn" -}}
+{{- $password := "sovrn" -}}
+
+architecture: {{ $architecture }}
+
+actions:
+  # Base Debian system
+  - action: debootstrap
+    suite: {{ $suite }}
+    components:
+      - main
+      - contrib
+      - non-free-firmware
+    mirror: http://deb.debian.org/debian
+    variant: minbase
+
+  # Apt configuration
+  - action: run
+    command: |
+      cat > /etc/apt/apt.conf.d/99sovrn <<EOF
+      APT::Install-Recommends "0";
+      APT::Install-Suggests "0";
+      Acquire::http::Timeout "10";
+      EOF
+
+  # Enable contrib and non-free (handle both old and deb822 format)
+  - action: run
+    command: |
+      if [ -f /etc/apt/sources.list ]; then
+        sed -i 's|main|main contrib non-free-firmware|g' /etc/apt/sources.list
+      elif [ -f /etc/apt/sources.list.d/debian.sources ]; then
+        sed -i 's/Components: main/Components: main contrib non-free-firmware/g' /etc/apt/sources.list.d/debian.sources
+      fi
+      apt-get update
+
+  # Install base system packages
+  - action: apt
+    packages:
+      - systemd
+      - systemd-sysv
+      - dbus
+      - linux-image-amd64
+      - linux-headers-amd64
+      - initramfs-tools
+      - grub2
+      - grub-pc-bin
+      - efibootmgr
+      - shim-signed
+      - grub-efi-amd64-signed
+      - os-prober
+
+  # Install GNOME desktop
+  - action: apt
+    packages:
+      - gnome-core
+      - gdm3
+      - adwaita-icon-theme
+      - fonts-inter
+      - fonts-jetbrains-mono
+      - libadwaita-1-dev
+      - libgtk-4-dev
+
+  # Install runtime dependencies
+  - action: apt
+    packages:
+      - python3
+      - python3-pip
+      - python3-venv
+      - python3-fastapi
+      - python3-uvicorn
+      - python3-pydantic
+      - python3-httpx
+      - python3-nacl
+      - python3-jwt
+      - python3-psutil
+      - python3-websockets
+      - python3-tomli
+      - python3-pil
+      - yggdrasil
+      - nftables
+      - unbound
+      - caddy
+      - libnotify-bin
+      - network-manager
+      - ca-certificates
+      - curl
+      - wget
+      - git
+      - openssh-client
+
+  # Create sovrn user
+  - action: run
+    command: |
+      useradd -m -s /bin/bash {{ $username }}
+      echo "{{ $username }}:{{ $password }}" | chpasswd
+      usermod -aG sudo {{ $username }} 2>/dev/null || true
+      usermod -aG adm {{ $username }}
+      usermod -aG systemd-journal {{ $username }}
+
+  # Create directories
+  - action: run
+    command: |
+      mkdir -p /var/lib/sovrn/sockets
+      mkdir -p /var/lib/sovrn/sovrnd
+      mkdir -p /var/lib/sovrn/dht
+      mkdir -p /var/lib/sovrn/identity
+      mkdir -p /var/lib/sovrn/presence
+      mkdir -p /var/lib/sovrn/feed
+      mkdir -p /var/lib/sovrn/messages
+      mkdir -p /var/lib/sovrn/cdn/cache
+      mkdir -p /var/lib/sovrn/cdn/meta
+      mkdir -p /var/lib/sovrn/pwa-dist
+      mkdir -p /var/log/sovrn
+      mkdir -p /etc/sovrn/ca
+      mkdir -p /usr/share/backgrounds/sovrn
+      mkdir -p /etc/sovrn/scripts
+      adduser --system --group --home /var/lib/sovrn --shell /usr/sbin/nologin sovrn 2>/dev/null || true
+      chown -R sovrn:sovrn /var/lib/sovrn /var/log/sovrn
+      chmod 775 /var/lib/sovrn/sockets
+
+  # Copy built binaries
+  - action: overlay
+    source: overlays/bin
+    destination: /
+
+  # Copy configuration files
+  - action: overlay
+    source: overlays/etc
+    destination: /
+
+  # Copy systemd units
+  - action: overlay
+    source: overlays/systemd
+    destination: /
+
+  # Copy PWA dist
+  - action: overlay
+    source: overlays/pwa-dist
+    destination: /
+
+  # Copy GNOME customizations
+  - action: overlay
+    source: overlays/gnome
+    destination: /
+
+  # Copy Python service dist (pre-installed: source + console_scripts wrappers)
+  - action: overlay
+    source: overlays/python-dist
+    destination: /
+
+  # Set hostname
+  - action: run
+    command: |
+      echo "{{ $hostname }}" > /etc/hostname
+      echo "127.0.1.1 {{ $hostname }}" >> /etc/hosts
+      echo "127.0.0.1 localhost" >> /etc/hosts
+
+  # Enable systemd services (daemon-reload first to pick up overlay files)
+  - action: run
+    command: |
+      systemctl daemon-reload 2>/dev/null || true
+      systemctl enable sovrn.target 2>/dev/null || true
+      systemctl enable sovrnd.service 2>/dev/null || true
+      systemctl enable sovrn-dht.service 2>/dev/null || true
+      systemctl enable sovrn-identity.service 2>/dev/null || true
+      systemctl enable sovrn-presence.service 2>/dev/null || true
+      systemctl enable sovrn-feed.service 2>/dev/null || true
+      systemctl enable sovrn-message-queue.service 2>/dev/null || true
+      systemctl enable sovrn-auth.service 2>/dev/null || true
+      systemctl enable sovrn-monitor.service 2>/dev/null || true
+      systemctl enable sovrn-notify-bridge.service 2>/dev/null || true
+      systemctl enable sovrn-cdn-agent.service 2>/dev/null || true
+      systemctl enable yggdrasil.service 2>/dev/null || true
+      systemctl enable NetworkManager.service 2>/dev/null || true
+      systemctl enable gdm.service 2>/dev/null || true
+      systemctl enable nftables.service 2>/dev/null || true
+      systemctl enable unbound.service 2>/dev/null || true
+
+  # CA bootstrap runs at first boot via sovrn-ca-bootstrap.service
+  # (build-time generation omitted so each node gets unique keys)
+
+  # Configure nftables
+  - action: run
+    command: |
+      cp /etc/sovrn/scripts/sovrn.nft /etc/nftables.conf 2>/dev/null || true
+      systemctl enable nftables 2>/dev/null || true
+
+  # Configure unbound
+  - action: run
+    command: |
+      mkdir -p /etc/unbound
+      echo "include: /etc/unbound/sovrn.conf" >> /etc/unbound/unbound.conf 2>/dev/null || true
+
+  # Create default backgrounds
+  - action: run
+    command: |
+      # Create simple plain-color backgrounds until proper assets are available
+      convert -size 1920x1080 xc:'#111827' /usr/share/backgrounds/sovrn/sovrn-default.png 2>/dev/null ||         python3 -c "
+      from PIL import Image
+      img = Image.new('RGB', (1920, 1080), (17, 24, 39))
+      img.save('/usr/share/backgrounds/sovrn/sovrn-default.png')
+      " 2>/dev/null ||         touch /usr/share/backgrounds/sovrn/sovrn-default.png
+      cp /usr/share/backgrounds/sovrn/sovrn-default.png /usr/share/backgrounds/sovrn/sovrn-default-dark.png 2>/dev/null || true
+      cp /usr/share/backgrounds/sovrn/sovrn-default.png /usr/share/backgrounds/sovrn/sovrn-screensaver.png 2>/dev/null || true
+
+  # OOBE first-boot marker (removed after OOBE completes)
+  - action: run
+    command: |
+      rm -f /var/lib/sovrn/oobe-complete
+
+  # Clean up (ignore errors for apt clean in containers)
+  - action: run
+    command: |
+      apt-get clean 2>/dev/null || true
+      rm -rf /var/cache/apt/archives/* 2>/dev/null || true
+      rm -rf /tmp/* 2>/dev/null || true
+      rm -f /var/log/*.log 2>/dev/null || true
+      rm -rf /root/.cache 2>/dev/null || true
+      rm -rf /run/systemd/nspawn/* 2>/dev/null || true
+
+  # Generate initramfs
+  - action: run
+    command: |
+      update-initramfs -u -k all
+
+  # GRUB setup
+  - action: run
+    command: |
+      mkdir -p /boot/grub
+      cat > /etc/default/grub <<GRUB
+      GRUB_DEFAULT=0
+      GRUB_TIMEOUT=5
+      GRUB_DISTRIBUTOR="Sovrn OS"
+      GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+      GRUB_CMDLINE_LINUX=""
+      GRUB_THEME=
+      GRUB_BACKGROUND=/usr/share/backgrounds/sovrn/sovrn-default.png
+      GRUB
+      update-grub || true
+
+  # Pack to image
+  - action: run
+    command: |
+      printf '%s\n' 'nameserver 1.1.1.1' > /etc/resolv.conf
+
+  - action: pack
+    file: sovrn-os-rootfs.tar.gz
+    compression: gz

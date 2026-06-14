@@ -1,0 +1,36 @@
+
+#include <tunables/global>
+
+/usr/bin/sovrnd flags=(complain) {
+    # SoVRNd daemon confinement profile
+
+    # Binary and libraries
+    /usr/bin/sovrnd mr,
+    /usr/lib/** mr,
+    /lib/** mr,
+
+    # Configuration
+    /etc/sovrn/** r,
+
+    # Data directory
+    /var/lib/sovrn/ r,
+    /var/lib/sovrn/** rw,
+
+    # Unix domain sockets
+    /var/lib/sovrn/sockets/** rw,
+
+    # Logs
+    /var/log/sovrn/ rw,
+    /var/log/sovrn/** rw,
+
+    # Network
+    network inet stream,
+    network inet6 stream,
+    network unix stream,
+
+    # D-Bus (for desktop notifications)
+    dbus (send, receive) bus=session,
+
+    # Deny everything else
+    deny /** w,
+}

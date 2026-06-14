@@ -1,0 +1,8 @@
+[Unit]
+Description=Sovrn OS Mesh Services
+Documentation=https://github.com/sovrn-os/sovrn
+After=network-online.target yggdrasil.service
+Wants=network-online.target yggdrasil.service
+
+[Install]
+WantedBy=multi-user.target

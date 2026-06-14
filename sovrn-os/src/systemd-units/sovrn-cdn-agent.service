@@ -1,0 +1,20 @@
+[Unit]
+Description=Sovrn CDN Agent (Content Delivery)
+After=network.target
+PartOf=sovrn.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sovrn-cdn-agent --config /etc/sovrn/cdn-agent.toml
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/sovrn/cdn /var/lib/sovrn/sockets
+
+[Install]
+WantedBy=sovrn.target

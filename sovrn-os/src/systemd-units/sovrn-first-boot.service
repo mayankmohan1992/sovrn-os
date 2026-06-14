@@ -1,0 +1,12 @@
+[Unit]
+Description=Sovrn First Boot Customization
+After=sovrnd.service caddy.service gdm.service
+ConditionPathExists=!/var/lib/sovrn/.first-boot-done
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/sovrn-first-boot
+
+[Install]
+WantedBy=multi-user.target

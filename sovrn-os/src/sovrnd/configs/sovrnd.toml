@@ -1,0 +1,55 @@
+# Sovrn Daemon Configuration
+# Per doc 28: sovrnd runs on port 54771, PWA on 54772, notify-bridge on 54773
+
+[server]
+host = "127.0.0.1"
+port = 54771
+# unix_socket = "/var/lib/sovrn/sockets/sovrnd.sock"  # Optional: use unix socket instead
+log_level = "info"
+
+[auth]
+# jwt_secret is auto-generated on first run if not set
+# jwt_secret = "change-me-in-production"
+jwt_algorithm = "HS256"
+jwt_expiry_hours = 24
+
+[paths]
+sockets_dir = "/var/lib/sovrn/sockets"
+data_dir = "/var/lib/sovrn/sovrnd"
+
+[mesh_services]
+# DHT service
+[mesh_services.dht]
+name = "dht"
+socket_path = "/var/lib/sovrn/sockets/dht.sock"
+health_method = "dht.health"
+
+# Identity service
+[mesh_services.identity]
+name = "identity"
+socket_path = "/var/lib/sovrn/sockets/identity.sock"
+health_method = "identity.get_profile"
+
+# Presence service
+[mesh_services.presence]
+name = "presence"
+socket_path = "/var/lib/sovrn/sockets/presence.sock"
+health_method = "presence.get_online"
+
+# Feed service
+[mesh_services.feed]
+name = "feed"
+socket_path = "/var/lib/sovrn/sockets/feed.sock"
+health_method = "feed.health"
+
+# Message Queue service
+[mesh_services.mq]
+name = "mq"
+socket_path = "/var/lib/sovrn/sockets/mq.sock"
+health_method = "mq.health"
+
+# CDN agent
+[mesh_services.cdn]
+name = "cdn"
+socket_path = "/var/lib/sovrn/sockets/cdn.sock"
+health_method = "cdn.health"

@@ -1,0 +1,22 @@
+[Unit]
+Description=Sovrn Feed Service (Social Feed)
+After=network.target
+PartOf=sovrn.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/sovrn-feed --config /etc/sovrn/feed.toml
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/sovrn/feed /var/lib/sovrn/sockets
+
+Environment=SOVRN_SOCKET_DIR=/var/lib/sovrn/sockets
+
+[Install]
+WantedBy=sovrn.target

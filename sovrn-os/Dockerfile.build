@@ -1,0 +1,17 @@
+FROM --platform=linux/amd64 rust:latest AS builder
+
+RUN rustup target add x86_64-unknown-linux-gnu && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    libgtk-4-dev libadwaita-1-dev libsqlite3-dev libssl-dev pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /project
+COPY . .
+
+RUN cargo build --release --workspace && \
+    mkdir -p /build/bin && \
+    cp target/release/sovrn-dht target/release/sovrn-identity target/release/sovrn-presence target/release/sovrn-feed target/release/sovrn-message-queue /build/bin/ && \
+    cp target/release/sovrn-oobe /build/bin/ 2>/dev/null; true
+
+FROM scratch
+COPY --from=builder /build/ /

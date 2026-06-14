@@ -1,0 +1,16 @@
+[project]
+name = "sovrn-auth"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.111",
+    "uvicorn>=0.30",
+    "pydantic>=2.7",
+]
+
+[project.scripts]
+sovrn-auth = "sovrn_auth.__main__:main"
+
+[build-system]
+requires = ["setuptools>=70.0"]
+build-backend = "setuptools.build_meta"

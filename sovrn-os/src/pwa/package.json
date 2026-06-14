@@ -1,0 +1,24 @@
+{
+  "name": "sovrn-hub",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "preact": "^10.22",
+    "preact-router": "^4.1",
+    "@preact/signals": "^1.2",
+    "dexie": "^4.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.9",
+    "typescript": "^5.5",
+    "vitest": "^2.0",
+    "vite-plugin-pwa": "^0.20",
+    "workbox-build": "^7.1"
+  }
+}

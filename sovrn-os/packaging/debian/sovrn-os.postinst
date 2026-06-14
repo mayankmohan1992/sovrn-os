@@ -1,0 +1,60 @@
+#!/bin/bash
+# Post-install script for sovrn-os metapackage
+set -e
+
+case "$1" in
+    configure)
+        # Create sovrn user and group
+        if ! id -u sovrn > /dev/null 2>&1; then
+            adduser --system --group --home /var/lib/sovrn --shell /usr/sbin/nologin sovrn
+        fi
+
+        # Create directories
+        mkdir -p /var/lib/sovrn/sockets
+        mkdir -p /var/lib/sovrn/sovrnd
+        mkdir -p /var/lib/sovrn/dht
+        mkdir -p /var/lib/sovrn/identity
+        mkdir -p /var/lib/sovrn/presence
+        mkdir -p /var/lib/sovrn/feed
+        mkdir -p /var/lib/sovrn/messages
+        mkdir -p /var/lib/sovrn/cdn/cache
+        mkdir -p /var/lib/sovrn/cdn/meta
+        mkdir -p /var/lib/sovrn/pwa-dist
+        mkdir -p /var/log/sovrn
+        mkdir -p /etc/sovrn
+        mkdir -p /etc/sovrn/ca
+
+        # Set ownership
+        chown -R sovrn:sovrn /var/lib/sovrn
+        chown -R sovrn:sovrn /var/log/sovrn
+
+        # Set socket directory permissions
+        chmod 775 /var/lib/sovrn/sockets
+
+        # Bootstrap CA
+        if [ ! -f /etc/sovrn/ca/ca.crt ]; then
+            /usr/share/sovrn/scripts/bootstrap-ca.sh
+        fi
+
+        # Reload systemd
+        systemctl daemon-reload
+
+        # Enable sovrn target
+        systemctl enable sovrn.target
+
+        # Check if OOBE should run (first boot)
+        if [ ! -f /var/lib/sovrn/oobe-complete ]; then
+            systemctl enable sovrn-oobe.service
+        fi
+
+        echo "Sovrn OS installed. Run 'systemctl start sovrn.target' to start all services."
+        echo "On first boot, the OOBE wizard will guide you through setup."
+        ;;
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        ;;
+esac
+
+exit 0

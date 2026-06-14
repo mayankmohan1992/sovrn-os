@@ -1,0 +1,17 @@
+[Unit]
+Description=Sovrn OOBE (Out-of-Box Experience)
+After=graphical.target sovrnd.service
+Requires=graphical.target
+ConditionPathExists=!/var/lib/sovrn/oobe-complete
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sovrn-oobe
+Restart=on-failure
+RestartSec=5
+
+Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=/run/user/%U
+
+[Install]
+WantedBy=graphical.target

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Sovrn Setup
+Comment=First-boot setup wizard for Sovrn OS
+Exec=/usr/bin/sovrn-oobe
+Icon=system-software-install
+Type=Application
+Categories=System;Setup;
+StartupNotify=true

@@ -1,0 +1,86 @@
+
+#!/usr/sbin/nft -f
+# Sovrn OS nftables firewall configuration
+# Per doc 28: Port 54771 (sovrnd), 54772 (PWA), 54774-54775 (DHT/Presence)
+
+flush ruleset
+
+table inet sovrn {
+    # Chain: Input — traffic to this host
+    chain input {
+        type filter hook input priority 0; policy drop;
+
+        # Allow loopback
+        iif lo accept
+
+        # Allow established/related connections
+        ct state established,related accept
+
+        # Allow ICMP (ping)
+        ip protocol icmp accept
+        ip6 nexthdr icmpv6 accept
+
+        # Allow SSH (port 22) for administration
+        tcp dport 22 accept
+
+        # Allow Yggdrasil mesh
+        tcp dport 54774 accept comment "DHT mesh"
+        udp dport 54774 accept comment "DHT mesh UDP"
+        udp dport 54775 accept comment "Presence heartbeat"
+
+        # Allow Caddy HTTP/HTTPS
+        tcp dport 80 accept
+        tcp dport 443 accept
+        tcp dport 54772 accept comment "Sovrn Hub PWA"
+
+        # Allow sovrnd API (localhost only)
+        iif lo tcp dport 54771 accept
+
+        # Allow sovrn-auth (localhost only)
+        iif lo tcp dport 54776 accept
+
+        # Allow sovrn-monitor (localhost only)
+        iif lo tcp dport 54777 accept
+
+        # Allow sovrn-notify-bridge (localhost only)
+        iif lo tcp dport 54773 accept
+
+        # Allow Yggdrasil
+        tcp dport 30550 accept comment "Yggdrasil"
+        udp dport 30550 accept comment "Yggdrasil"
+
+        # Log and drop everything else
+        log prefix "sovrn-drop: " drop
+    }
+
+    # Chain: Forward — routed traffic (Yggdrasil gateway)
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+
+        # Allow Yggdrasil traffic
+        iifname "yggdrasil" accept
+        oifname "yggdrasil" accept
+
+        # Allow established/related
+        ct state established,related accept
+
+        # Log and drop
+        log prefix "sovrn-fwd-drop: " drop
+    }
+
+    # Chain: Output — traffic from this host
+    chain output {
+        type filter hook output priority 0; policy accept;
+
+        # Allow all outbound
+        accept
+    }
+
+    # Chain: NAT for Yggdrasil
+    chain postrouting {
+        type nat hook postrouting priority 100; policy accept;
+
+        # Masquerade Yggdrasil traffic going to the internet
+        oifname != "yggdrasil" masquerade
+    }
+}

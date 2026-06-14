@@ -1,0 +1,30 @@
+# Sovrn OS Calamares Branding
+---
+componentName: sovrn
+
+strings:
+    productName:         "Sovrn OS"
+    shortProductName:    "Sovrn"
+    version:             "0.1.0"
+    shortVersion:        "0.1"
+    versionedName:       "Sovrn OS 0.1.0"
+    shortVersionedName:  "Sovrn 0.1"
+    bootloaderEntryName: "sovrn"
+    productUrl:          "https://sovrn.os"
+    supportUrl:          "https://github.com/sovrn-os/sovrn"
+    knownIssuesUrl:      "https://github.com/sovrn-os/sovrn/issues"
+    releaseNotesUrl:     "https://github.com/sovrn-os/sovrn/releases"
+
+images:
+    productLogo:         "logo.png"
+    productIcon:         "logo.png"
+    productWelcome:      "welcome.png"
+
+slideshow:               "show.qml"
+slideshowAPI:             1
+
+style:
+    sidebarBackground:   "#111827"
+    sidebarText:          "#F9FAFB"
+    sidebarTextSelect:    "#0D9488"
+    sidebarTextHighlight: "#0D9488"

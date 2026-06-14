@@ -1,0 +1,18 @@
+[Unit]
+Description=Sovrn Monitor Service (System Health)
+After=sovrnd.service
+PartOf=sovrn.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sovrn-monitor
+Restart=on-failure
+RestartSec=5
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=sovrn.target

@@ -1,0 +1,5 @@
+FROM ghcr.io/cross-rs/x86_64-unknown-linux-gnu:latest
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgtk-4-dev libadwaita-1-dev libsqlite3-dev libssl-dev pkg-config \
+    && rm -rf /var/lib/apt/lists/*

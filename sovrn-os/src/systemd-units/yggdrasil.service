@@ -1,0 +1,19 @@
+[Unit]
+Description=Yggdrasil Mesh Network
+After=network.target
+Wants=NetworkManager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/yggdrasil -useconffile /etc/sovrn/yggdrasil.conf
+Restart=on-failure
+RestartSec=5
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/yggdrasil
+
+[Install]
+WantedBy=multi-user.target

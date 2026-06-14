@@ -1,0 +1,98 @@
+Source: sovrn-os
+Section: system
+Priority: optional
+Maintainer: Sovrn OS Team <team@sovrn.os>
+Build-Depends: debhelper (>= 13), cargo (>= 1.75), golang-go (>= 1.22), python3 (>= 3.12), npm (>= 10)
+Standards-Version: 4.7.0
+Homepage: https://github.com/sovrn-os/sovrn
+
+Package: sovrn-os
+Architecture: amd64
+Depends: sovrnd, sovrn-dht, sovrn-identity, sovrn-presence, sovrn-feed, sovrn-message-queue, sovrn-cdn-agent, sovrn-auth, sovrn-monitor, sovrn-notify-bridge, sovrn-oobe, sovrn-hub, caddy, yggdrasil, nftables, unbound, libnotify-bin
+Description: Sovrn OS - Privacy-first decentralized operating system
+ Metapackage that installs all Sovrn OS components including the mesh
+ services, web hub, OOBE wizard, and supporting infrastructure.
+
+Package: sovrnd
+Architecture: all
+Depends: python3 (>= 3.12), python3-fastapi, python3-uvicorn, python3-pydantic, python3-httpx, python3-nacl, python3-jwt
+Description: Sovrn OS central orchestrator daemon
+ FastAPI REST API daemon that proxies to mesh services via Unix sockets.
+ Runs on port 54771 and provides the main API gateway.
+
+Package: sovrn-dht
+Architecture: amd64
+Depends: libc6 (>= 2.38)
+Description: Sovrn DHT mesh service
+ Distributed Hash Table service for .sovrn domain resolution
+ and content discovery on the Yggdrasil mesh network.
+
+Package: sovrn-identity
+Architecture: amd64
+Depends: libc6 (>= 2.38)
+Description: Sovrn identity service
+ Key management, seed phrase derivation, and cryptographic identity
+ service for the Sovrn mesh network.
+
+Package: sovrn-presence
+Architecture: amd64
+Depends: libc6 (>= 2.38), yggdrasil
+Description: Sovrn presence service
+ Heartbeat and peer tracking service that monitors which nodes
+ are online on the Yggdrasil mesh network.
+
+Package: sovrn-feed
+Architecture: amd64
+Depends: libc6 (>= 2.38)
+Description: Sovrn social feed service
+ Content-addressed social feed service supporting posts, comments,
+ reactions, and search on the Sovrn mesh.
+
+Package: sovrn-message-queue
+Architecture: amd64
+Depends: libc6 (>= 2.38), yggdrasil
+Description: Sovrn encrypted messaging service
+ End-to-end encrypted direct messaging service using X25519
+ key exchange and AES-256-GCM encryption.
+
+Package: sovrn-cdn-agent
+Architecture: amd64
+Depends: libc6 (>= 2.38)
+Description: Sovrn CDN agent
+ Content delivery agent that pushes static assets to Sia/IPFS/Filecoin
+ and serves them from edge cache for .sovrn domains.
+
+Package: sovrn-auth
+Architecture: all
+Depends: python3 (>= 3.12), python3-fastapi, python3-uvicorn, python3-pydantic
+Description: Sovrn access policy engine
+ Standalone policy engine that enforces role-based access control
+ for Sovrn OS API endpoints.
+
+Package: sovrn-monitor
+Architecture: all
+Depends: python3 (>= 3.12), python3-fastapi, python3-uvicorn, python3-pydantic, python3-psutil
+Description: Sovrn system monitoring service
+ System health monitoring service tracking CPU, memory, disk,
+ network, and service health metrics.
+
+Package: sovrn-notify-bridge
+Architecture: all
+Depends: python3 (>= 3.12), python3-fastapi, python3-uvicorn, python3-pydantic, python3-websockets, libnotify-bin
+Description: Sovrn notification bridge service
+ Bridges WebSocket events from sovrnd to desktop notifications
+ via libnotify/org.freedesktop.Notifications.
+
+Package: sovrn-oobe
+Architecture: amd64
+Depends: libc6 (>= 2.38), libadwaita-1-0 (>= 1.5), libgtk-4-1 (>= 4.14)
+Description: Sovrn OOBE (Out-of-Box Experience)
+ GTK4/libadwaita first-boot wizard that guides users through
+ identity creation, domain registration, and network setup.
+
+Package: sovrn-hub
+Architecture: all
+Depends: nginx | caddy
+Description: Sovrn Hub PWA (Progressive Web App)
+ Pre-built Preact PWA providing the web interface for Sovrn OS.
+ Served via Caddy on port 54772.

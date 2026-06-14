@@ -1,0 +1,11 @@
+[Unit]
+Description=Sovrn CA Bootstrap (First Boot)
+After=local-fs.target
+ConditionPathExists=!/var/lib/sovrn/ca/ca.crt
+
+[Service]
+Type=oneshot
+ExecStart=/etc/sovrn/scripts/bootstrap-ca.sh
+
+[Install]
+WantedBy=multi-user.target

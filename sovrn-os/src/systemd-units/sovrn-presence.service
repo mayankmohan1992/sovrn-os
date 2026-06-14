@@ -1,0 +1,23 @@
+[Unit]
+Description=Sovrn Presence Service (Heartbeat & Peer Tracking)
+After=network.target yggdrasil.service
+Requires=yggdrasil.service
+PartOf=sovrn.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/sovrn-presence --config /etc/sovrn/presence.toml
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/sovrn/presence /var/lib/sovrn/sockets
+
+Environment=SOVRN_SOCKET_DIR=/var/lib/sovrn/sockets
+
+[Install]
+WantedBy=sovrn.target

@@ -1,0 +1,22 @@
+[Unit]
+Description=Sovrn Identity Service (Key Management)
+After=network.target
+PartOf=sovrn.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/sovrn-identity --config /etc/sovrn/identity.toml
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/sovrn/identity /var/lib/sovrn/sockets
+
+Environment=SOVRN_SOCKET_DIR=/var/lib/sovrn/sockets
+
+[Install]
+WantedBy=sovrn.target

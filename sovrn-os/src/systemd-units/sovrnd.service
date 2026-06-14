@@ -1,0 +1,27 @@
+[Unit]
+Description=Sovrn OS Daemon (Central Orchestrator)
+After=network.target
+Wants=sovrn-dht.service sovrn-identity.service sovrn-presence.service sovrn-feed.service sovrn-message-queue.service
+PartOf=sovrn.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/sovrnd --config /etc/sovrn/sovrnd.toml
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/sovrn /var/log/sovrn
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+# Environment
+Environment=SOVRN_SOCKET_DIR=/var/lib/sovrn/sockets
+Environment=SOVRN_DATA_DIR=/var/lib/sovrn/sovrnd
+
+[Install]
+WantedBy=sovrn.target

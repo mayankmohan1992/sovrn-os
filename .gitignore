@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# Syncthing
+.stfolder/
+
+# IDE
+.vscode/
+.idea/
+*.swp

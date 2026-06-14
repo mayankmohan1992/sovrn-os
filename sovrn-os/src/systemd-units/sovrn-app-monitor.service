@@ -1,0 +1,17 @@
+[Unit]
+Description=Sovrn App Health Monitor
+After=sovrnd.service
+Wants=sovrnd.service
+
+[Service]
+Type=simple
+Environment=SOVRN_HOME=/var/lib/sovrn
+ExecStart=/usr/bin/sovrn-app-monitor
+Restart=on-failure
+RestartSec=5
+
+MemoryMax=64M
+CPUQuota=10%
+
+[Install]
+WantedBy=multi-user.target

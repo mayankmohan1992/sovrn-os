@@ -1,0 +1,43 @@
+# Build artifacts
+/build/bin/
+/build/overlays/
+/build/etc/
+/build/share/
+/build/lib/
+/build/sovrn-os-rootfs.tar.gz
+/build/sovrn-os-hybrid.img
+
+# Rust
+/target/
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+*.dist-info/
+
+# Go
+*.exe
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+
+# Temporary
+*.tmp
+*.bak
+
+# CI artifacts
+/build/sovrn-os-*.img
+/build/sovrn-os-*.iso
