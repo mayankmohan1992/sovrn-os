@@ -31,6 +31,9 @@ jobs:
             grub-efi-amd64-bin \
             xorriso \
             mtools \
+            dosfstools \
+            e2fsprogs \
+            util-linux \
             qemu-system-x86 \
             qemu-utils \
             python3-pip \
@@ -68,6 +71,10 @@ jobs:
       - name: Build hybrid disk image
         working-directory: sovrn-os
         run: |
+          echo "Checking prerequisites..."
+          command -v mkfs.fat || echo "WARN: mkfs.fat not found"
+          command -v mkfs.ext4 || echo "WARN: mkfs.ext4 not found"
+          ls -la *.tar.gz build/*.tar.gz 2>/dev/null || echo "No tarball found yet"
           sudo ./build/build-iso-image.sh
 
       - name: Quick smoke test
