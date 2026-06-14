@@ -198,3 +198,9 @@ Chronological record of every error and fix.
 - **Error:** "Run image builder with diagnostics" step ran `bash -x ./build/build-iso-image.sh || true` without `sudo`, so `check_root` failed silently and `|| true` swallowed the exit code. The "Upload hybrid image artifact" step printed "No files found" warning.
 - **Fix:** Replaced with `sudo bash -x ./build/build-iso-image.sh` (no `|| true`). Also renamed step to "Build hybrid disk image".
 - **Status:** Resolved
+
+### Error #33: GRUB wildcard globs — image would fail to boot
+- **Phase:** Phase 7 — Verification
+- **Error:** GRUB config used `linux /boot/vmlinuz-*` and `initrd /boot/initrd.img-*`. GRUB does not support shell glob patterns — `*` is treated as a literal character in filenames. The kernel would never be found at boot.
+- **Fix:** After rootfs extraction, detect exact kernel filenames via `ls`, then use bash variable expansion in an unquoted heredoc to write precise paths (e.g., `vmlinuz-6.12.86+deb13-amd64`). Escaped GRUB's own `\$root` with backslash to prevent bash from expanding it.
+- **Status:** Resolved — CI Run #17 all green, kernel detected and written correctly.
