@@ -141,6 +141,17 @@ cp "$PROJECT_DIR"/scripts/bootstrap-ca.sh "$OVERLAY_DIR/etc/etc/sovrn/scripts/"
 cp "$PROJECT_DIR"/src/nftables/sovrn.nft "$OVERLAY_DIR/etc/etc/sovrn/scripts/" 2>/dev/null || true
 chmod +x "$OVERLAY_DIR/etc/etc/sovrn/scripts/bootstrap-ca.sh"
 
+# Copy PolicyKit policy for pkexec authorization
+mkdir -p "$OVERLAY_DIR/etc/usr/share/polkit-1/actions"
+cp "$PROJECT_DIR"/src/polkit-actions/*.policy "$OVERLAY_DIR/etc/usr/share/polkit-1/actions/" 2>/dev/null || true
+
+# Copy Sovrn OS Installer (desktop launcher + script)
+mkdir -p "$OVERLAY_DIR/gnome/usr/bin"
+cp "$PROJECT_DIR"/src/installer/sovrn-install "$OVERLAY_DIR/gnome/usr/bin/"
+chmod +x "$OVERLAY_DIR/gnome/usr/bin/sovrn-install"
+mkdir -p "$OVERLAY_DIR/gnome/usr/share/applications"
+cp "$PROJECT_DIR"/src/installer/sovrn-install.desktop "$OVERLAY_DIR/gnome/usr/share/applications/" 2>/dev/null || true
+
 # Prepare Python dist overlay (final installed locations, no pip needed)
 log "Preparing Python dist overlay..."
 PYDIST="$OVERLAY_DIR/python-dist"

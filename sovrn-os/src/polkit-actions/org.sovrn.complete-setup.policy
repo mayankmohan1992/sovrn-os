@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>Sovrn OS</vendor>
+  <vendor_url>https://sovrn.social</vendor_url>
+
+  <action id="org.sovrn.complete-setup.apt-update">
+    <description>Update package lists</description>
+    <description xml:lang="en">Update package lists</description>
+    <message>Authentication is required to update package lists</message>
+    <message xml:lang="en">Authentication is required to update package lists</message>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/apt-get</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">update</annotate>
+  </action>
+
+  <action id="org.sovrn.complete-setup.apt-install">
+    <description>Install packages</description>
+    <description xml:lang="en">Install packages</description>
+    <message>Authentication is required to install packages</message>
+    <message xml:lang="en">Authentication is required to install packages</message>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/apt-get</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">install</annotate>
+  </action>
+</policyconfig>

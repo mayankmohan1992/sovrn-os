@@ -95,8 +95,10 @@ build_image() {
     # Mount partitions
     log "Mounting partitions..."
     mkdir -p /tmp/sovrn-mnt /tmp/sovrn-efi
-    mount "${loop_dev}p3" /tmp/sovrn-mnt
-    mount "${loop_dev}p2" /tmp/sovrn-efi
+    root_part="${loop_dev}p3"
+    efi_part="${loop_dev}p2"
+    mount "$root_part" /tmp/sovrn-mnt
+    mount "$efi_part" /tmp/sovrn-efi
 
     # Extract rootfs tarball
     log "Extracting rootfs tarball..."
@@ -111,6 +113,14 @@ build_image() {
     fi
     log "  Kernel: $KERNEL_NAME"
     log "  Initrd: $INITRD_NAME"
+
+    # Generate fstab
+    log "Generating /etc/fstab..."
+    cat > /tmp/sovrn-mnt/etc/fstab <<FSTAB
+LABEL=SOVRN_OS  /          ext4  defaults,errors=remount-ro  0  1
+LABEL=SOVRN_EFI /boot/efi  vfat  defaults,noautomount         0  2
+tmpfs           /tmp       tmpfs defaults,nosuid,nodev         0  0
+FSTAB
 
     # Install GRUB (BIOS + UEFI)
     log "Installing GRUB bootloader..."
@@ -127,6 +137,8 @@ build_image() {
     cat > /tmp/sovrn-mnt/boot/grub/grub.cfg <<GRUB
 set default=0
 set timeout=5
+
+search --set=root --label SOVRN_OS --no-floppy
 
 loadfont (\$root)/boot/grub/fonts/unicode.pf2
 set gfxmode=auto

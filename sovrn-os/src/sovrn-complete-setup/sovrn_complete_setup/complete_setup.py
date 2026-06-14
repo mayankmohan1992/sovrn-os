@@ -16,7 +16,7 @@ PACKAGE_GROUPS = {
     "Office": ["libreoffice", "evince", "libreoffice-gtk3"],
     "Media": ["vlc", "totem", "gnome-music", "sound-juicer"],
     "Games": ["gnome-games", "five-or-more", "four-in-a-row", "gnome-sudoku"],
-    "Development": ["code", "git-gui", "meliae"],
+    "Development": ["git-gui", "meliae"],
     "Productivity": [
         "gnome-calendar",
         "gnome-contacts",
@@ -125,17 +125,18 @@ class CompleteSetup(Adw.Application):
         def do_install():
             try:
                 subprocess.run(
-                    ["pkexec", "apt-get", "update"],
+                    ["pkexec", "/usr/bin/apt-get", "update"],
                     check=True,
                     capture_output=True,
                     timeout=120,
                 )
                 subprocess.run(
-                    ["pkexec", "apt-get", "install", "-y", "--no-install-recommends"] + pkgs,
+                    ["pkexec", "/usr/bin/apt-get", "install", "-y", "--no-install-recommends"] + pkgs,
                     check=True,
                     capture_output=True,
                     timeout=600,
                 )
+                self.mark_complete()
                 GLib.idle_add(self.show_done, True)
             except Exception as e:
                 GLib.idle_add(self.show_done, False, str(e))
@@ -179,7 +180,6 @@ class CompleteSetup(Adw.Application):
 
         window = self.get_active_window()
         window.set_content(page)
-        self.mark_complete()
         self.install_running = False
 
     @staticmethod
