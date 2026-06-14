@@ -314,5 +314,7 @@ else
     if ! command -v debos &>/dev/null; then
         err "debos not found. Install: apt install debos"
     fi
-    debos --memory 5120 build/$RECIPE || err "Debos build failed"
+    # Use --disable-fakemachine to avoid VM memory overhead on RAM-constrained CI runners
+    # The -e flag ensures the build runs directly on the host (needs sudo for debootstrap)
+    debos --disable-fakemachine build/$RECIPE || err "Debos build failed"
 fi
