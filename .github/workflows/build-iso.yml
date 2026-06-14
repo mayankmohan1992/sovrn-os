@@ -12,10 +12,12 @@ jobs:
     name: Build Hybrid Disk Image
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install system dependencies
         run: |
@@ -41,14 +43,15 @@ jobs:
           targets: x86_64-unknown-linux-gnu
 
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.22'
+          cache-dependency-path: sovrn-os/src/sovrn-cdn-agent/go.sum
 
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Build all components from source
         working-directory: sovrn-os

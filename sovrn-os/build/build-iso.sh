@@ -56,13 +56,14 @@ log "Preparing overlay directories..."
 mkdir -p "$OVERLAY_DIR"/{etc,systemd,pwa-dist,gnome,scripts}
 mkdir -p "$OVERLAY_DIR/bin/usr/bin"
 
-for bin in sovrn-dht sovrn-identity sovrn-presence sovrn-feed sovrn-message-queue sovrn-cdn-agent caddy; do
+for bin in sovrn-dht sovrn-identity sovrn-presence sovrn-feed sovrn-message-queue sovrn-cdn-agent; do
     if [ -f "$BUILD_DIR/bin/$bin" ]; then
         cp "$BUILD_DIR/bin/$bin" "$OVERLAY_DIR/bin/usr/bin/"
     else
         warn "Binary not found: $bin"
     fi
 done
+# caddy is installed via apt inside debos, not from build/bin/
 
 mkdir -p "$OVERLAY_DIR/systemd/etc/systemd/system"
 cp "$PROJECT_DIR"/src/systemd-units/*.service "$OVERLAY_DIR/systemd/etc/systemd/system/"
@@ -201,8 +202,8 @@ for pkg in sovrnd sovrn_auth sovrn_monitor sovrn_notify_bridge; do
     check_dir "$OVERLAY_DIR/python-dist/usr/lib/python3/dist-packages/$pkg"
 done
 
-# Check binaries
-for bin in sovrn-dht sovrn-identity sovrn-presence sovrn-feed sovrn-message-queue sovrn-cdn-agent caddy; do
+# Check binaries (caddy not included — installed via apt inside debos)
+for bin in sovrn-dht sovrn-identity sovrn-presence sovrn-feed sovrn-message-queue sovrn-cdn-agent; do
     check_file "$OVERLAY_DIR/bin/usr/bin/$bin"
 done
 
@@ -232,7 +233,7 @@ check_file "$OVERLAY_DIR/pwa-dist/var/lib/sovrn/pwa-dist/index.html"
 # Skip Python services (installed via pip) and system packages (installed via apt)
 PYTHON_SERVICES="sovrnd sovrn-auth sovrn-monitor sovrn-notify-bridge"
 NEVER_BUILT="sovrn-oobe sovrn-app-monitor sovrn-first-boot"
-SYSTEM_PACKAGES="yggdrasil"
+SYSTEM_PACKAGES="yggdrasil caddy"
 log "Cross-referencing ExecStart paths with overlay binaries..."
 for unit in "$OVERLAY_DIR/systemd/etc/systemd/system/"*.service; do
     while IFS= read -r line; do
