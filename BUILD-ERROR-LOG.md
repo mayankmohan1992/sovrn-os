@@ -185,3 +185,16 @@ Chronological record of every error and fix.
 - **Error:** After 9 CI run failures, a full codebase audit found 24 issues: package name mismatches (libpipewire, libwireplumber, pulseaudio), systemd service design flaws (sovrn-complete-setup needs XDG autostart, not system service), build script bugs (missing sudo, relative path), stale overlays (yggdrasil, sovrnd), missing validation entries, GRUB shell constructs, and missing build steps.
 - **Fix:** All 24 issues catalogued and fixed in batch — see project-state.md for full list.
 - **Status:** Resolved
+
+### Error #31: CI Run #10-13 — build-iso-image.sh silent exit with set -e
+- **Phase:** Phase 6 — CI image builder
+- **Error:** `build-iso-image.sh` exited silently (3ms) without calling `check_root` or `build_image`. All tools present, tarball exists, but no error output. Caused CI Runs #10-13 to fail at "Build hybrid disk image" step.
+- **Root cause:** `check_prereqs()` used `[ "$missing" -eq 1 ] && err "..."` as its last statement. When `missing=0`, `[ 0 -eq 1 ]` returned exit code 1 (false). Because this was the function's last command, `check_prereqs` returned exit code 1, triggering `set -e` in `main()` — silently exiting before `check_root`/`build_image` were called. The `|| true` in the CI diagnostic step masked the exit code.
+- **Fix:** Changed to `if [ "$missing" -eq 1 ]; then err "..."; fi`. The `if` statement protects the `[ ]` test from `set -e`, so the function returns 0 when `missing=0`.
+- **Status:** Resolved — CI Run #15 all green.
+
+### Error #32: CI Run #14 — Diagnostic step masked missing sudo
+- **Phase:** Phase 6 — CI workflow
+- **Error:** "Run image builder with diagnostics" step ran `bash -x ./build/build-iso-image.sh || true` without `sudo`, so `check_root` failed silently and `|| true` swallowed the exit code. The "Upload hybrid image artifact" step printed "No files found" warning.
+- **Fix:** Replaced with `sudo bash -x ./build/build-iso-image.sh` (no `|| true`). Also renamed step to "Build hybrid disk image".
+- **Status:** Resolved

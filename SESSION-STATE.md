@@ -1,8 +1,8 @@
 # Sovrn OS — Session State
 
-## Last Updated: 2026-06-14 15:30
+## Last Updated: 2026-06-14 20:55
 
-## Current Phase: PHASE 7 ✅ — Comprehensive audit complete — 24 issues found
+## Current Phase: PHASE 7 ✅ — First successful CI build & image
 
 ## Critical Note
 All source files and build artifacts live inside `sovrn-os/`. Commands must run from `sovrn-os/` or use absolute paths.
@@ -30,8 +30,8 @@ All source files and build artifacts live inside `sovrn-os/`. Commands must run 
 | **Phase 3**: Python services | **DONE** | 5 services (incl. sovrn-complete-setup) installed via `pip install -e .` |
 | **Phase 4**: Preact PWA | **DONE** | Built with service worker, dist in `sovrn-os/build/share/pwa-dist/` |
 | **Phase 5**: Config assembly | **DONE** | All configs, systemd units, overlays populated in `sovrn-os/build/overlays/` |
-| **Phase 6**: ISO build | **IN PROGRESS** | 9 CI runs attempted, all failed. Currently fixing all issues for Run #10. |
-| **Phase 7**: Verification | **NOT STARTED** | Awaiting first successful CI build. |
+| **Phase 6**: ISO build | **DONE ✅** | CI Run #14-15 both succeeded. Image built, smoke-tested, uploaded. |
+| **Phase 7**: Verification | **IN PROGRESS** | QEMU smoke test passes. Need full boot validation. |
 
 ---
 
@@ -76,7 +76,13 @@ All source files and build artifacts live inside `sovrn-os/`. Commands must run 
 32. **`build-iso.sh` validation**: Added `sovrn-complete-setup.service` to systemd unit check.
 33. **`AGENTS.md` updated**: `debos-sovrn.yaml` → `debos-sovrn-ci.yaml`, added CI workflow info.
 
-## Goal
-- Get the GitHub Actions CI build (`feature/ci-github-actions` → `main` PR #1) to succeed and produce `sovrn-os-hybrid.img`.
+### CI Run #15 — First complete success (all steps green):
+34. **`build-iso-image.sh`: Fixed `set -e` silent exit in `check_prereqs()`**: Root cause of all Run #10-13 image builder failures. `[ "$missing" -eq 1 ] && err "..."` as last function statement returned exit code 1 when `missing=0`, triggering `set -e` in `main()` before `check_root`/`build_image` were called. Fixed by using `if` statement.
+35. **CI workflow hardened**: Renamed diagnostic step → "Build hybrid disk image". Changed `bash -x ... || true` to `sudo bash -x ...` (no error masking). Added `if-no-files-found: error` to artifact upload. Made build summary handle missing image gracefully.
 
-## All state files and AGENTS.md updated with comprehensive audit findings
+## Goal ✅ ACHIEVED
+- GitHub Actions CI Run #15 completed with all 14 steps green.
+- Hybrid image `sovrn-os-hybrid.img` (2.9 GB) built, smoke-tested in QEMU, and uploaded as artifact.
+- First fully successful CI build since project start.
+
+## All state files updated with CI Run #15 results

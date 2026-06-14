@@ -1,8 +1,8 @@
 # Sovrn OS — Project State
 
-## Current Status: CI BUILD — Comprehensive audit complete — 24 issues found and batched for fix
+## Current Status: ✅ CI BUILD SUCCEEDS — Image built, smoke-tested, uploaded
 
-Last updated: 2026-06-14 15:30
+Last updated: 2026-06-14 20:55
 
 ### Source Code Summary
 
@@ -39,10 +39,13 @@ Last updated: 2026-06-14 15:30
 | Debos recipe | `debos-sovrn-ci.yaml` | Ready (was `debos-sovrn.yaml`) |
 | Build scripts | `build.sh`, `build-iso.sh`, `build-iso-image.sh` | Ready |
 
-### Current Blocker
+### Current Status
 
-1. **CI build must succeed on GitHub Actions** — 9 previous CI runs all failed with different errors. All 24 audit issues now fixed in batch.
-2. **No KVM on CI** — `--disable-fakemachine` is required (7 GB runner insufficient for VM overhead).
+1. ✅ **CI Run #15 succeeded** — All 14 steps green. Image built, QEMU smoke-tested, artifact uploaded.
+2. ✅ **Image builder fixed** — Root cause was `set -e` silent exit in `check_prereqs()`.
+3. ✅ **Caching working** — Rootfs tarball cached (cache hit → debos skipped).
+4. **No KVM on CI** — `--disable-fakemachine` is required (7 GB runner insufficient for VM overhead).
+5. **Next: full boot validation** — Current QEMU smoke test is minimal (30s timeout, basic boot check).
 
 ### Not blockers
 
@@ -86,7 +89,7 @@ Last updated: 2026-06-14 15:30
 | PWA dist | `sovrn-os/build/share/pwa-dist/` | ✅ |
 | Overlays | `sovrn-os/build/overlays/` | ✅ (generated at build time) |
 | Rootfs tarball | `build/sovrn-os-rootfs.tar.gz` | 🔄 (built by CI) |
-| Hybrid image | `build/sovrn-os-hybrid.img` | 🔄 (built by CI) |
+| Hybrid image | `build/sovrn-os-hybrid.img` | ✅ (2.9 GB, uploaded as artifact) |
 
 ### Known Issues
 
