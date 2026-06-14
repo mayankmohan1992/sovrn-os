@@ -7,9 +7,10 @@
 #   Linux:  debos (apt install debos) or Docker
 #
 # Usage:
-#   ./build-iso.sh              # Full build
-#   ./build-iso.sh --quick      # Skip compile, use pre-built binaries
-#   ./build-iso.sh --docker     # Force Docker mode (macOS default)
+#   ./build-iso.sh                               # Full build (CI recipe)
+#   ./build-iso.sh --quick                       # Skip compile, use pre-built binaries
+#   ./build-iso.sh --docker                      # Force Docker mode (macOS default)
+#   ./build-iso.sh --recipe <yaml>               # Use specific debos recipe
 
 set -euo pipefail
 
@@ -31,12 +32,15 @@ OS="$(uname -s)"
 ARCH="$(uname -m)"
 USE_DOCKER=false
 QUICK=false
+RECIPE="debos-sovrn-ci.yaml"
 
-for arg in "$@"; do
-    case "$arg" in
-        --docker) USE_DOCKER=true ;;
-        --quick) QUICK=true ;;
-        --help) echo "Usage: $0 [--docker] [--quick]"; exit 0 ;;
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --docker) USE_DOCKER=true; shift ;;
+        --quick) QUICK=true; shift ;;
+        --recipe) RECIPE="$2"; shift 2 ;;
+        --help) echo "Usage: $0 [--docker] [--quick] [--recipe <yaml>]"; exit 0 ;;
+        *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
 
@@ -158,10 +162,11 @@ install_python_pkg() {
     log "  Installed $bin_name -> $py_module.__main__:main"
 }
 
-install_python_pkg "$PROJECT_DIR/src/sovrnd"           "sovrnd"           "sovrnd"           "sovrnd"
-install_python_pkg "$PROJECT_DIR/src/sovrn-auth"        "sovrn-auth"        "sovrn_auth"        "sovrn-auth"
-install_python_pkg "$PROJECT_DIR/src/sovrn-monitor"     "sovrn-monitor"     "sovrn_monitor"     "sovrn-monitor"
-install_python_pkg "$PROJECT_DIR/src/sovrn-notify-bridge" "sovrn-notify-bridge" "sovrn_notify_bridge" "sovrn-notify-bridge"
+install_python_pkg "$PROJECT_DIR/src/sovrnd"                "sovrnd"                "sovrnd"                "sovrnd"
+install_python_pkg "$PROJECT_DIR/src/sovrn-auth"            "sovrn-auth"            "sovrn_auth"            "sovrn-auth"
+install_python_pkg "$PROJECT_DIR/src/sovrn-monitor"         "sovrn-monitor"         "sovrn_monitor"         "sovrn-monitor"
+install_python_pkg "$PROJECT_DIR/src/sovrn-notify-bridge"   "sovrn-notify-bridge"   "sovrn_notify_bridge"   "sovrn-notify-bridge"
+install_python_pkg "$PROJECT_DIR/src/sovrn-complete-setup" "sovrn-complete-setup" "sovrn_complete_setup" "sovrn-complete-setup"
 
 rm -rf "$PYDIST/usr/lib/python3/dist-packages"/__pycache__ 2>/dev/null || true
 
@@ -195,10 +200,10 @@ check_dir "$OVERLAY_DIR/gnome/etc/dconf/profile"
 check_dir "$OVERLAY_DIR/gnome/etc/dconf/db"
 check_dir "$OVERLAY_DIR/python-dist/usr/lib/python3/dist-packages"
 check_dir "$OVERLAY_DIR/python-dist/usr/bin"
-for bin in sovrnd sovrn-auth sovrn-monitor sovrn-notify-bridge; do
+for bin in sovrnd sovrn-auth sovrn-monitor sovrn-notify-bridge sovrn-complete-setup; do
     check_file "$OVERLAY_DIR/python-dist/usr/bin/$bin"
 done
-for pkg in sovrnd sovrn_auth sovrn_monitor sovrn_notify_bridge; do
+for pkg in sovrnd sovrn_auth sovrn_monitor sovrn_notify_bridge sovrn_complete_setup; do
     check_dir "$OVERLAY_DIR/python-dist/usr/lib/python3/dist-packages/$pkg"
 done
 
@@ -231,7 +236,7 @@ check_file "$OVERLAY_DIR/pwa-dist/var/lib/sovrn/pwa-dist/index.html"
 
 # Cross-reference: every ExecStart path in unit files should have a matching binary
 # Skip Python services (installed via pip) and system packages (installed via apt)
-PYTHON_SERVICES="sovrnd sovrn-auth sovrn-monitor sovrn-notify-bridge"
+PYTHON_SERVICES="sovrnd sovrn-auth sovrn-monitor sovrn-notify-bridge sovrn-complete-setup"
 NEVER_BUILT="sovrn-oobe sovrn-app-monitor sovrn-first-boot"
 SYSTEM_PACKAGES="yggdrasil caddy"
 log "Cross-referencing ExecStart paths with overlay binaries..."
@@ -289,7 +294,7 @@ if [ "$USE_DOCKER" = true ]; then
         ghcr.io/go-debos/debos:latest \
         --disable-fakemachine \
         --artifactdir=/build \
-        /project/build/debos-sovrn.yaml || err "Debos rootfs build failed"
+        /project/build/$RECIPE || err "Debos rootfs build failed"
 
     ROOTFS_TAR="$BUILD_DIR/sovrn-os-rootfs.tar.gz"
     if [ -f "$ROOTFS_TAR" ]; then
@@ -299,7 +304,7 @@ if [ "$USE_DOCKER" = true ]; then
         log "NOTE: Bootable ISO requires a Linux host with KVM."
         log "To build the ISO on Linux:"
         log "  1. Install: apt install debos xorriso grub-pc-bin"
-        log "  2. Run:     debos build/debos-sovrn.yaml"
+        log "  2. Run:     debos build/$RECIPE"
         log ""
         log "Or use the rootfs tarball directly to create a custom image."
     else
@@ -309,5 +314,5 @@ else
     if ! command -v debos &>/dev/null; then
         err "debos not found. Install: apt install debos"
     fi
-    debos --memory 4096 build/debos-sovrn.yaml || err "Debos build failed"
+    debos --memory 5120 build/$RECIPE || err "Debos build failed"
 fi

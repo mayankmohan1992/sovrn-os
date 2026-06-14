@@ -6,8 +6,13 @@
 
 architecture: {{ $architecture }}
 
+fakemachine:
+  memory: 5120
+  swap: true
+  kvm: true
+
 actions:
-  # Base Debian system
+  # ── Stage 1: Debootstrap ──
   - action: debootstrap
     suite: {{ $suite }}
     components:
@@ -17,7 +22,7 @@ actions:
     mirror: http://deb.debian.org/debian
     variant: minbase
 
-  # Apt configuration
+  # ── Apt configuration (no recommends/suggests) ──
   - action: run
     command: |
       cat > /etc/apt/apt.conf.d/99sovrn <<EOF
@@ -26,7 +31,6 @@ actions:
       Acquire::http::Timeout "10";
       EOF
 
-  # Enable contrib and non-free (handle both old and deb822 format)
   - action: run
     command: |
       if [ -f /etc/apt/sources.list ]; then
@@ -36,7 +40,7 @@ actions:
       fi
       apt-get update
 
-  # Install base system packages
+  # ── Stage 2: Base system (kernel, firmware, bootloader, locale) ──
   - action: apt
     packages:
       - systemd
@@ -44,6 +48,7 @@ actions:
       - dbus
       - linux-image-amd64
       - linux-headers-amd64
+      - linux-firmware
       - initramfs-tools
       - grub2
       - grub-pc-bin
@@ -51,20 +56,57 @@ actions:
       - shim-signed
       - grub-efi-amd64-signed
       - os-prober
+      - locales-all
+      - tzdata
+      - plymouth
+      - plymouth-themes
 
-  # Install minimal desktop (gnome-core is too large for CI runner)
+  - action: run
+    command: |
+      apt-get clean
+      rm -rf /var/cache/apt/archives/*
+
+  # ── Stage 3: Minimal GNOME desktop ──
   - action: apt
     packages:
       - gdm3
       - gnome-shell
-      - gnome-console
+      - gnome-terminal
       - nautilus
+      - gnome-control-center
+      - gnome-settings-daemon
+      - gnome-session
+      - gnome-shell-extensions
       - adwaita-icon-theme
       - fonts-inter
       - fonts-jetbrains-mono
       - desktop-base
+      - policykit-1
+      - accountsservice
+      - gnome-software
+      - packagekit
 
-  # Install runtime dependencies
+  - action: run
+    command: |
+      apt-get clean
+      rm -rf /var/cache/apt/archives/*
+
+  # ── Stage 4: Network and audio ──
+  - action: apt
+    packages:
+      - network-manager
+      - pipewire
+      - wireplumber
+      - pulseaudio
+      - libpipewire-0.3-0
+      - libwireplumber-0.3-0
+
+  - action: run
+    command: |
+      apt-get clean
+      rm -rf /var/cache/apt/archives/*
+
+  # ── Stage 5: Runtime dependencies (Python, mesh, DNS, web) ──
   - action: apt
     packages:
       - python3
@@ -85,14 +127,33 @@ actions:
       - unbound
       - caddy
       - libnotify-bin
-      - network-manager
       - ca-certificates
       - curl
       - wget
       - git
       - openssh-client
 
-  # Create sovrn user
+  - action: run
+    command: |
+      apt-get clean
+      rm -rf /var/cache/apt/archives/*
+
+  # ── Stage 6: OOBE runtime libraries ──
+  - action: apt
+    packages:
+      - libadwaita-1-0
+      - libgtk-4-1
+      - python3-gi
+      - python3-gi-cairo
+      - gir1.2-adw-1
+      - gir1.2-gtk-4.0
+
+  - action: run
+    command: |
+      apt-get clean
+      rm -rf /var/cache/apt/archives/*
+
+  # ── Create sovrn user ──
   - action: run
     command: |
       useradd -m -s /bin/bash {{ $username }}
@@ -101,7 +162,7 @@ actions:
       usermod -aG adm {{ $username }}
       usermod -aG systemd-journal {{ $username }}
 
-  # Create directories
+  # ── Create directories ──
   - action: run
     command: |
       mkdir -p /var/lib/sovrn/sockets
@@ -122,44 +183,44 @@ actions:
       chown -R sovrn:sovrn /var/lib/sovrn /var/log/sovrn
       chmod 775 /var/lib/sovrn/sockets
 
-  # Copy built binaries
+  # ── Copy built binaries ──
   - action: overlay
     source: overlays/bin
     destination: /
 
-  # Copy configuration files
+  # ── Copy configuration files ──
   - action: overlay
     source: overlays/etc
     destination: /
 
-  # Copy systemd units
+  # ── Copy systemd units ──
   - action: overlay
     source: overlays/systemd
     destination: /
 
-  # Copy PWA dist
+  # ── Copy PWA dist ──
   - action: overlay
     source: overlays/pwa-dist
     destination: /
 
-  # Copy GNOME customizations
+  # ── Copy GNOME customizations ──
   - action: overlay
     source: overlays/gnome
     destination: /
 
-  # Copy Python service dist (pre-installed: source + console_scripts wrappers)
+  # ── Copy Python service dist ──
   - action: overlay
     source: overlays/python-dist
     destination: /
 
-  # Set hostname
+  # ── Set hostname ──
   - action: run
     command: |
       echo "{{ $hostname }}" > /etc/hostname
       echo "127.0.1.1 {{ $hostname }}" >> /etc/hosts
       echo "127.0.0.1 localhost" >> /etc/hosts
 
-  # Enable systemd services (daemon-reload first to pick up overlay files)
+  # ── Enable systemd services ──
   - action: run
     command: |
       systemctl daemon-reload 2>/dev/null || true
@@ -179,40 +240,39 @@ actions:
       systemctl enable gdm.service 2>/dev/null || true
       systemctl enable nftables.service 2>/dev/null || true
       systemctl enable unbound.service 2>/dev/null || true
+      systemctl enable sovrn-complete-setup.service 2>/dev/null || true
 
-  # CA bootstrap runs at first boot via sovrn-ca-bootstrap.service
-  # (build-time generation omitted so each node gets unique keys)
-
-  # Configure nftables
+  # ── Configure nftables ──
   - action: run
     command: |
       cp /etc/sovrn/scripts/sovrn.nft /etc/nftables.conf 2>/dev/null || true
       systemctl enable nftables 2>/dev/null || true
 
-  # Configure unbound
+  # ── Configure unbound ──
   - action: run
     command: |
       mkdir -p /etc/unbound
       echo "include: /etc/unbound/sovrn.conf" >> /etc/unbound/unbound.conf 2>/dev/null || true
 
-  # Create default backgrounds
+  # ── Create default backgrounds ──
   - action: run
     command: |
-      # Create simple plain-color backgrounds until proper assets are available
-      convert -size 1920x1080 xc:'#111827' /usr/share/backgrounds/sovrn/sovrn-default.png 2>/dev/null ||         python3 -c "
+      convert -size 1920x1080 xc:'#111827' /usr/share/backgrounds/sovrn/sovrn-default.png 2>/dev/null || \
+        python3 -c "
       from PIL import Image
       img = Image.new('RGB', (1920, 1080), (17, 24, 39))
       img.save('/usr/share/backgrounds/sovrn/sovrn-default.png')
-      " 2>/dev/null ||         touch /usr/share/backgrounds/sovrn/sovrn-default.png
+      " 2>/dev/null || \
+        touch /usr/share/backgrounds/sovrn/sovrn-default.png
       cp /usr/share/backgrounds/sovrn/sovrn-default.png /usr/share/backgrounds/sovrn/sovrn-default-dark.png 2>/dev/null || true
       cp /usr/share/backgrounds/sovrn/sovrn-default.png /usr/share/backgrounds/sovrn/sovrn-screensaver.png 2>/dev/null || true
 
-  # OOBE first-boot marker (removed after OOBE completes)
+  # ── OOBE first-boot marker ──
   - action: run
     command: |
       rm -f /var/lib/sovrn/oobe-complete
 
-  # Clean up (ignore errors for apt clean in containers)
+  # ── Final cleanup ──
   - action: run
     command: |
       apt-get clean 2>/dev/null || true
@@ -222,12 +282,12 @@ actions:
       rm -rf /root/.cache 2>/dev/null || true
       rm -rf /run/systemd/nspawn/* 2>/dev/null || true
 
-  # Generate initramfs
+  # ── Generate initramfs ──
   - action: run
     command: |
       update-initramfs -u -k all
 
-  # GRUB setup
+  # ── GRUB setup ──
   - action: run
     command: |
       mkdir -p /boot/grub
@@ -242,11 +302,12 @@ actions:
       GRUB
       update-grub || true
 
-  # Pack to image
+  # ── Set DNS ──
   - action: run
     command: |
       printf '%s\n' 'nameserver 1.1.1.1' > /etc/resolv.conf
 
+  # ── Pack rootfs ──
   - action: pack
     file: sovrn-os-rootfs.tar.gz
     compression: gz

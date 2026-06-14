@@ -1,0 +1,17 @@
+[Unit]
+Description=Sovrn OS Complete Setup (first-boot package installer)
+ConditionPathExists=!/var/lib/sovrn/setup-complete
+After=network-online.target graphical.target
+Wants=network-online.target
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/sovrn-complete-setup
+StandardOutput=journal
+StandardError=journal
+RemainAfterExit=yes
+TimeoutStartSec=infinity
+
+[Install]
+WantedBy=multi-user.target graphical.target

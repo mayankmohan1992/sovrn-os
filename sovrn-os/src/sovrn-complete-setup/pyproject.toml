@@ -1,0 +1,18 @@
+[project]
+name = "sovrn-complete-setup"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "PyGObject>=3.48",
+]
+
+[project.scripts]
+sovrn-complete-setup = "sovrn_complete_setup.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["sovrn_complete_setup*"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
