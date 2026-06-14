@@ -10,7 +10,6 @@ dependencies = [
 sovrn-complete-setup = "sovrn_complete_setup.__main__:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
 include = ["sovrn_complete_setup*"]
 
 [build-system]
