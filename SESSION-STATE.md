@@ -1,6 +1,6 @@
 # Sovrn OS — Session State
 
-## Last Updated: 2026-06-14 20:55
+## Last Updated: 2026-06-14 22:15
 
 ## Current Phase: PHASE 7 ✅ — First successful CI build & image
 
@@ -79,6 +79,8 @@ All source files and build artifacts live inside `sovrn-os/`. Commands must run 
 ### CI Run #15 — First complete success (all steps green):
 34. **`build-iso-image.sh`: Fixed `set -e` silent exit in `check_prereqs()`**: Root cause of all Run #10-13 image builder failures. `[ "$missing" -eq 1 ] && err "..."` as last function statement returned exit code 1 when `missing=0`, triggering `set -e` in `main()` before `check_root`/`build_image` were called. Fixed by using `if` statement.
 35. **CI workflow hardened**: Renamed diagnostic step → "Build hybrid disk image". Changed `bash -x ... || true` to `sudo bash -x ...` (no error masking). Added `if-no-files-found: error` to artifact upload. Made build summary handle missing image gracefully.
+
+36. **GRUB wildcard bug fixed**: GRUB does not support `*` globs in `linux`/`initrd` commands. Changed from wildcard patterns (`vmlinuz-*`, `initrd.img-*`) to exact filenames detected from the extracted rootfs. Changed heredoc from `<<'GRUB'` (literal) to `<<GRUB` (variable expansion) with `\$root` escaping for GRUB's own `$root` variable.
 
 ## Goal ✅ ACHIEVED
 - GitHub Actions CI Run #15 completed with all 14 steps green.

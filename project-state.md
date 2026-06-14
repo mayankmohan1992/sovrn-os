@@ -1,8 +1,8 @@
 # Sovrn OS — Project State
 
-## Current Status: ✅ CI BUILD SUCCEEDS — Image built, smoke-tested, uploaded
+## Current Status: ✅ CI BUILD SUCCEEDS — GRUB wildcard fix, image ready for USB boot
 
-Last updated: 2026-06-14 20:55
+Last updated: 2026-06-14 22:15
 
 ### Source Code Summary
 
@@ -88,7 +88,7 @@ Last updated: 2026-06-14 20:55
 | Python dist | `sovrn-os/build/lib/` | ✅ |
 | PWA dist | `sovrn-os/build/share/pwa-dist/` | ✅ |
 | Overlays | `sovrn-os/build/overlays/` | ✅ (generated at build time) |
-| Rootfs tarball | `build/sovrn-os-rootfs.tar.gz` | 🔄 (built by CI) |
+| Rootfs tarball | `build/sovrn-os-rootfs.tar.gz` | ✅ (cached, rebuilt only on recipe change) |
 | Hybrid image | `build/sovrn-os-hybrid.img` | ✅ (2.9 GB, uploaded as artifact) |
 
 ### Known Issues

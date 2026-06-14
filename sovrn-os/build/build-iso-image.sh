@@ -103,6 +103,15 @@ build_image() {
     tar -xzf "$ROOTFS_TAR" -C /tmp/sovrn-mnt
     log "  Rootfs extracted"
 
+    # Detect exact kernel filenames (GRUB does not expand globs)
+    KERNEL_NAME=$(ls /tmp/sovrn-mnt/boot/vmlinuz-* 2>/dev/null | head -1 | xargs basename)
+    INITRD_NAME=$(ls /tmp/sovrn-mnt/boot/initrd.img-* 2>/dev/null | head -1 | xargs basename)
+    if [ -z "$KERNEL_NAME" ] || [ -z "$INITRD_NAME" ]; then
+        err "No kernel found in rootfs /boot/ (vmlinuz-* or initrd.img-* missing)"
+    fi
+    log "  Kernel: $KERNEL_NAME"
+    log "  Initrd: $INITRD_NAME"
+
     # Install GRUB (BIOS + UEFI)
     log "Installing GRUB bootloader..."
     grub-install --target=i386-pc --boot-directory=/tmp/sovrn-mnt/boot "$loop_dev" 2>&1 | tail -2
@@ -115,11 +124,11 @@ build_image() {
     # Write GRUB config
     log "Writing GRUB config..."
     mkdir -p /tmp/sovrn-mnt/boot/grub
-    cat > /tmp/sovrn-mnt/boot/grub/grub.cfg <<'GRUB'
+    cat > /tmp/sovrn-mnt/boot/grub/grub.cfg <<GRUB
 set default=0
 set timeout=5
 
-loadfont ($root)/boot/grub/fonts/unicode.pf2
+loadfont (\$root)/boot/grub/fonts/unicode.pf2
 set gfxmode=auto
 insmod efi_gop
 insmod efi_uga
@@ -128,13 +137,13 @@ insmod gfxmenu
 terminal_output gfxterm
 
 menuentry "Sovrn OS" {
-    linux /boot/vmlinuz-* root=LABEL=SOVRN_OS quiet splash
-    initrd /boot/initrd.img-*
+    linux /boot/${KERNEL_NAME} root=LABEL=SOVRN_OS quiet splash
+    initrd /boot/${INITRD_NAME}
 }
 
 menuentry "Sovrn OS (safe mode)" {
-    linux /boot/vmlinuz-* root=LABEL=SOVRN_OS nomodeset
-    initrd /boot/initrd.img-*
+    linux /boot/${KERNEL_NAME} root=LABEL=SOVRN_OS nomodeset
+    initrd /boot/${INITRD_NAME}
 }
 
 menuentry "System setup (UEFI)" {

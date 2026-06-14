@@ -29,7 +29,7 @@ The CI workflow is at `.github/workflows/build-iso.yml`. It runs on `ubuntu-late
 6. **Debos**: `sudo debos --disable-fakemachine` builds rootfs tarball (no KVM, 7 GB runner)
 7. **Verification**: QEMU smoke test (boots image, checks SSH)
 
-**Current focus:** Fixing all 24 audit issues to get CI Run #10 to pass.
+**Current focus:** CI builds are succeeding. Next: verify bootable image boots on real hardware (Ventoy or dd).
 
 ## Platform Notes
 
