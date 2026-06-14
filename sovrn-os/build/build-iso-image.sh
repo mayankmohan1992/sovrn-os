@@ -53,13 +53,13 @@ build_image() {
     # Cleanup handler
     cleanup() {
         log "Cleaning up..."
-        if [ -n "$root_part" ] && mountpoint -q /tmp/sovrn-mnt 2>/dev/null; then
+        if [ -n "${root_part:-}" ] && mountpoint -q /tmp/sovrn-mnt 2>/dev/null; then
             umount /tmp/sovrn-mnt 2>/dev/null || true
         fi
-        if [ -n "$efi_part" ] && mountpoint -q /tmp/sovrn-efi 2>/dev/null; then
+        if [ -n "${efi_part:-}" ] && mountpoint -q /tmp/sovrn-efi 2>/dev/null; then
             umount /tmp/sovrn-efi 2>/dev/null || true
         fi
-        if [ -n "$loop_dev" ]; then
+        if [ -n "${loop_dev:-}" ]; then
             losetup -d "$loop_dev" 2>/dev/null || true
         fi
         rm -rf /tmp/sovrn-mnt /tmp/sovrn-efi 2>/dev/null || true
