@@ -235,10 +235,8 @@ actions:
   - action: run
     command: |
       echo "{{ $hostname }}" > /etc/hostname
-      cat > /etc/hosts <<HOSTS
-      127.0.0.1 localhost
-      127.0.1.1 {{ $hostname }}
-HOSTS
+      echo "127.0.0.1 localhost" > /etc/hosts
+      echo "127.0.1.1 {{ $hostname }}" >> /etc/hosts
 
   # ── Enable systemd services ──
   - action: run
