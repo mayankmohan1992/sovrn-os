@@ -2,7 +2,7 @@ name: Build Sovrn OS Hybrid Image
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/ci-*]
   pull_request:
     branches: [main]
   workflow_dispatch:
