@@ -52,16 +52,17 @@ actions:
       - grub-efi-amd64-signed
       - os-prober
 
-  # Install GNOME desktop
+  # Install minimal desktop (gnome-core is too large for CI runner)
   - action: apt
     packages:
-      - gnome-core
       - gdm3
+      - gnome-shell
+      - gnome-console
+      - nautilus
       - adwaita-icon-theme
       - fonts-inter
       - fonts-jetbrains-mono
-      - libadwaita-1-dev
-      - libgtk-4-dev
+      - desktop-base
 
   # Install runtime dependencies
   - action: apt

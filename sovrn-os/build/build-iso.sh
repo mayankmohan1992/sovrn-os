@@ -309,5 +309,5 @@ else
     if ! command -v debos &>/dev/null; then
         err "debos not found. Install: apt install debos"
     fi
-    debos build/debos-sovrn.yaml || err "Debos build failed"
+    debos --memory 4096 build/debos-sovrn.yaml || err "Debos build failed"
 fi
