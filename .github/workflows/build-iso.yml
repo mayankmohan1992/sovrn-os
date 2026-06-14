@@ -61,7 +61,7 @@ jobs:
       - name: Build rootfs tarball (debos)
         working-directory: sovrn-os
         run: |
-          ./build/build-iso.sh --quick
+          sudo ./build/build-iso.sh --quick
 
       - name: Build hybrid disk image
         working-directory: sovrn-os
