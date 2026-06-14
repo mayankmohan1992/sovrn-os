@@ -1,0 +1,92 @@
+name: Build Sovrn OS Hybrid Image
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Hybrid Disk Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            debos \
+            parted \
+            grub-pc-bin \
+            grub-efi-amd64-bin \
+            xorriso \
+            mtools \
+            qemu-system-x86 \
+            qemu-utils \
+            python3-pip \
+            npm \
+            build-essential \
+            pkg-config \
+            libssl-dev
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build all components from source
+        working-directory: sovrn-os
+        run: |
+          bash scripts/build.sh all
+
+      - name: Build rootfs tarball (debos)
+        working-directory: sovrn-os
+        run: |
+          ./build/build-iso.sh --quick
+
+      - name: Build hybrid disk image
+        working-directory: sovrn-os
+        run: |
+          sudo ./build/build-iso-image.sh
+
+      - name: Quick smoke test
+        working-directory: sovrn-os
+        run: |
+          echo "### Boot test with QEMU" >> $GITHUB_STEP_SUMMARY
+          timeout 30 qemu-system-x86_64 \
+            -m 256 -enable-kvm -cpu host -nographic \
+            -drive file=build/sovrn-os-hybrid.img,format=raw \
+            -serial mon:stdio 2>&1 || true
+          echo "- Smoke test completed" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload hybrid image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sovrn-os-hybrid
+          path: sovrn-os/build/sovrn-os-hybrid.img
+          retention-days: 30
+
+      - name: Print build summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          du -sh sovrn-os/build/sovrn-os-hybrid.img | while read size name; do
+            echo "- Image: \`sovrn-os-hybrid.img\` (${size})" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "- Flash to USB: \`sudo dd if=sovrn-os-hybrid.img of=/dev/sdX bs=4M status=progress\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Test with QEMU: \`qemu-system-x86_64 -m 2048 -enable-kvm -cpu host -drive file=sovrn-os-hybrid.img,format=raw\`" >> $GITHUB_STEP_SUMMARY
