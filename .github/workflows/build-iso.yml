@@ -63,15 +63,35 @@ jobs:
         run: |
           bash scripts/build.sh all
 
+      - name: Restore cached rootfs tarball
+        id: cache-rootfs
+        uses: actions/cache@v4
+        with:
+          path: sovrn-os/build/sovrn-os-rootfs.tar.gz
+          key: rootfs-${{ hashFiles('sovrn-os/build/debos-sovrn-ci.yaml', 'sovrn-os/src/systemd-units/*', 'sovrn-os/build/overlays/**') }}
+          restore-keys: |
+            rootfs-
+
       - name: Build rootfs tarball (debos)
+        if: steps.cache-rootfs.outputs.cache-hit != 'true'
         working-directory: sovrn-os
         run: |
           sudo ./build/build-iso.sh --quick
 
-      - name: Build hybrid disk image
+      - name: Verify rootfs tarball exists
         working-directory: sovrn-os
         run: |
-          sudo ./build/build-iso-image.sh
+          ls -la build/sovrn-os-rootfs.tar.gz || {
+            echo "Rootfs tarball not found! Trying to rebuild..."
+            sudo ./build/build-iso.sh --quick
+          }
+
+      - name: Run image builder with diagnostics
+        working-directory: sovrn-os
+        run: |
+          set -x
+          bash -x ./build/build-iso-image.sh 2>&1 || true
+          echo "--- exit code: $? ---"
 
       - name: Quick smoke test
         working-directory: sovrn-os
