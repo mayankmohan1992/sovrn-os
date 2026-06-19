@@ -94,7 +94,12 @@ Last updated: 2026-06-14 22:15
 ### Known Issues
 
 - 3 non-existent services (`sovrn-oobe`, `sovrn-first-boot`, `sovrn-app-monitor`) have `.service` files installed but binaries don't exist. They reference `NEVER_BUILT` binaries in validation skip list. Services won't start at boot (binary missing → failed → auto-restart loop).
-- `sovrn-ca-bootstrap.service` missing `RemainAfterExit=yes`.
-- Python GTK4 imports are at top level in `complete_setup.py` — will crash if GI unavailable.
 - All sovrn services run as root despite `sovrn` system user existing.
 - CI QEMU smoke test uses `-enable-kvm` which is unavailable on `ubuntu-latest` runners.
+
+### Resolved in This Session
+
+- `sovrn-ca-bootstrap.service` missing `RemainAfterExit=yes` (Fixed: added to service config, enabled in debos).
+- `zram-setup.service` not enabled and missing `modprobe zram` (Fixed: prepended kernel module loading, enabled in debos).
+- Python GTK4 imports are at top level in `complete_setup.py` (Fixed: wrapped in import-safe try-except block).
+- `validate-build.sh` false positive failure on `sovrn-complete-setup` (Fixed: added setup binary to python service lists).
