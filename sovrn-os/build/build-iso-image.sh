@@ -135,11 +135,32 @@ FSTAB
 
     # Install GRUB (BIOS + UEFI) inside chroot
     log "Installing GRUB bootloader..."
+
+    # Temporarily override /etc/mtab inside chroot for grub-install to resolve loop partition paths correctly
+    local mtab_was_symlink=0
+    if [ -L /tmp/sovrn-mnt/etc/mtab ]; then
+        mtab_was_symlink=1
+        rm -f /tmp/sovrn-mnt/etc/mtab
+    fi
+    cat > /tmp/sovrn-mnt/etc/mtab <<EOF
+${loop_dev}p3 / ext4 rw,relatime 0 0
+${loop_dev}p2 /boot/efi vfat rw,relatime 0 0
+EOF
+
+    # Install BIOS GRUB
     chroot /tmp/sovrn-mnt grub-install --target=i386-pc "$loop_dev" 2>&1 | tail -2
+
+    # Install UEFI GRUB
     mkdir -p /tmp/sovrn-mnt/boot/efi/EFI/BOOT
     chroot /tmp/sovrn-mnt grub-install --target=x86_64-efi --removable \
         --efi-directory=/boot/efi \
         --no-nvram 2>&1 | tail -2
+
+    # Restore /etc/mtab symlink inside chroot
+    if [ "$mtab_was_symlink" -eq 1 ]; then
+        rm -f /tmp/sovrn-mnt/etc/mtab
+        ln -sf ../proc/self/mounts /tmp/sovrn-mnt/etc/mtab
+    fi
 
     # Clean up chroot mounts so they don't lock the filesystems
     log "Cleaning up chroot environment..."
@@ -179,6 +200,16 @@ menuentry "System setup (UEFI)" {
     fwsetup
 }
 GRUB
+
+    # Unmount target filesystem and detach loop device manually to ensure everything is flushed/synced
+    log "Unmounting target filesystem..."
+    umount /tmp/sovrn-mnt
+    root_part=""
+    efi_part=""
+
+    log "Detaching loop device..."
+    losetup -d "$loop_dev"
+    loop_dev=""
 
     # Sync and verify
     sync
