@@ -258,6 +258,8 @@ actions:
       systemctl enable gdm.service 2>/dev/null || true
       systemctl enable nftables.service 2>/dev/null || true
       systemctl enable unbound.service 2>/dev/null || true
+      systemctl enable sovrn-ca-bootstrap.service 2>/dev/null || true
+      systemctl enable zram-setup.service 2>/dev/null || true
       # sovrn-complete-setup launched via XDG autostart .desktop file
 
   # ── Configure nftables ──

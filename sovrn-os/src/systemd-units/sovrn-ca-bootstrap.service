@@ -6,6 +6,7 @@ ConditionPathExists=!/var/lib/sovrn/ca/ca.crt
 [Service]
 Type=oneshot
 ExecStart=/etc/sovrn/scripts/bootstrap-ca.sh
+RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target

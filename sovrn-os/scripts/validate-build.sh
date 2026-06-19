@@ -119,9 +119,9 @@ echo ""
 
 # ── 6. Cross-reference ExecStart paths ──
 echo "--- Cross-reference ExecStart paths ---"
-PYTHON_SERVICES="sovrnd sovrn-auth sovrn-monitor sovrn-notify-bridge"
+PYTHON_SERVICES="sovrnd sovrn-auth sovrn-monitor sovrn-notify-bridge sovrn-complete-setup"
 NEVER_BUILT="sovrn-oobe sovrn-app-monitor sovrn-first-boot"
-SYSTEM_PACKAGES="yggdrasil"
+SYSTEM_PACKAGES="yggdrasil caddy"
 
 for unit in "$OVERLAY_DIR/systemd/etc/systemd/system/"*.service; do
     unit_name=$(basename "$unit")

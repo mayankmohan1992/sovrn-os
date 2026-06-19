@@ -4,11 +4,17 @@ import sys
 import os
 import subprocess
 import threading
-import gi
-
-gi.require_version("Gtk", "4.0")
-gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw, GLib
+try:
+    import gi
+    gi.require_version("Gtk", "4.0")
+    gi.require_version("Adw", "1")
+    from gi.repository import Gtk, Adw, GLib
+    BaseApp = Adw.Application
+except (ImportError, ValueError):
+    BaseApp = object
+    Gtk = None
+    Adw = None
+    GLib = None
 
 SETUP_COMPLETE_MARKER = "/var/lib/sovrn/setup-complete"
 
@@ -33,7 +39,7 @@ PACKAGE_GROUPS = {
 }
 
 
-class CompleteSetup(Adw.Application):
+class CompleteSetup(BaseApp):
     def __init__(self):
         super().__init__(application_id="org.sovrn.CompleteSetup")
         self.selected_groups = set()
@@ -193,5 +199,9 @@ class CompleteSetup(Adw.Application):
 
 
 def main():
+    if BaseApp is object:
+        print("Error: PyGObject, GTK4 or libadwaita not found.", file=sys.stderr)
+        print("This GUI setup utility requires a graphical Linux environment.", file=sys.stderr)
+        return 1
     app = CompleteSetup()
     return app.run(sys.argv)
