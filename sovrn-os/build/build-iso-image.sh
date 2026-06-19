@@ -56,6 +56,10 @@ build_image() {
     cleanup() {
         log "Cleaning up..."
         if [ -n "${root_part:-}" ] && mountpoint -q /tmp/sovrn-mnt 2>/dev/null; then
+            umount /tmp/sovrn-mnt/boot/efi 2>/dev/null || true
+            umount /tmp/sovrn-mnt/dev 2>/dev/null || true
+            umount /tmp/sovrn-mnt/proc 2>/dev/null || true
+            umount /tmp/sovrn-mnt/sys 2>/dev/null || true
             umount /tmp/sovrn-mnt 2>/dev/null || true
         fi
         if [ -n "${efi_part:-}" ] && mountpoint -q /tmp/sovrn-efi 2>/dev/null; then
@@ -93,17 +97,24 @@ build_image() {
     mkfs.ext4 -F -L "$ROOT_LABEL" "${loop_dev}p3"
 
     # Mount partitions
-    log "Mounting partitions..."
-    mkdir -p /tmp/sovrn-mnt /tmp/sovrn-efi
+    log "Mounting root partition..."
+    mkdir -p /tmp/sovrn-mnt
     root_part="${loop_dev}p3"
     efi_part="${loop_dev}p2"
     mount "$root_part" /tmp/sovrn-mnt
-    mount "$efi_part" /tmp/sovrn-efi
 
-    # Extract rootfs tarball
+    # Extract rootfs tarball first so we can mount into its directories
     log "Extracting rootfs tarball..."
     tar -xzf "$ROOTFS_TAR" -C /tmp/sovrn-mnt
     log "  Rootfs extracted"
+
+    # Mount EFI partition and bind mounts for chroot
+    log "Setting up chroot environment..."
+    mkdir -p /tmp/sovrn-mnt/boot/efi
+    mount "$efi_part" /tmp/sovrn-mnt/boot/efi
+    mount --bind /dev /tmp/sovrn-mnt/dev
+    mount --bind /proc /tmp/sovrn-mnt/proc
+    mount --bind /sys /tmp/sovrn-mnt/sys
 
     # Detect exact kernel filenames (GRUB does not expand globs)
     KERNEL_NAME=$(ls /tmp/sovrn-mnt/boot/vmlinuz-* 2>/dev/null | head -1 | xargs basename)
@@ -122,14 +133,20 @@ LABEL=SOVRN_EFI /boot/efi  vfat  defaults,noautomount         0  2
 tmpfs           /tmp       tmpfs defaults,nosuid,nodev         0  0
 FSTAB
 
-    # Install GRUB (BIOS + UEFI)
+    # Install GRUB (BIOS + UEFI) inside chroot
     log "Installing GRUB bootloader..."
-    grub-install --target=i386-pc --boot-directory=/tmp/sovrn-mnt/boot "$loop_dev" 2>&1 | tail -2
-    mkdir -p /tmp/sovrn-efi/EFI/BOOT
-    grub-install --target=x86_64-efi --removable \
-        --efi-directory=/tmp/sovrn-efi \
-        --boot-directory=/tmp/sovrn-mnt/boot \
+    chroot /tmp/sovrn-mnt grub-install --target=i386-pc "$loop_dev" 2>&1 | tail -2
+    mkdir -p /tmp/sovrn-mnt/boot/efi/EFI/BOOT
+    chroot /tmp/sovrn-mnt grub-install --target=x86_64-efi --removable \
+        --efi-directory=/boot/efi \
         --no-nvram 2>&1 | tail -2
+
+    # Clean up chroot mounts so they don't lock the filesystems
+    log "Cleaning up chroot environment..."
+    umount /tmp/sovrn-mnt/boot/efi
+    umount /tmp/sovrn-mnt/dev
+    umount /tmp/sovrn-mnt/proc
+    umount /tmp/sovrn-mnt/sys
 
     # Write GRUB config
     log "Writing GRUB config..."
