@@ -129,6 +129,7 @@ actions:
       - yggdrasil
       - nftables
       - unbound
+      - dns-root-data
       - caddy
       - libnotify-bin
       - ca-certificates

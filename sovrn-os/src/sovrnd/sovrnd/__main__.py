@@ -34,7 +34,7 @@ def main():
         app,
         host=config.host,
         port=config.port,
-        unix=config.unix_socket if config.unix_socket else None,
+        uds=config.unix_socket,
         log_level=config.log_level.lower(),
         access_log=True,
     )
