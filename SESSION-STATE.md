@@ -103,6 +103,8 @@ All source files and build artifacts live inside `sovrn-os/`. Commands must run 
     - Replaced the invalid `unix` parameter with `uds` in `uvicorn.run()` in the `sovrnd` orchestrator package entrypoint, resolving a runtime crash (`TypeError: run() got an unexpected keyword argument 'unix'`).
 46. **`unbound.service` DNSSEC Trust Anchor Fix**:
     - Added the `dns-root-data` package to `debos-sovrn-ci.yaml`, which supplies the necessary `/usr/share/dns/root.key` root DNSSEC keys. This resolves unbound service failing to launch on startup due to a missing `/var/lib/unbound/root.key` trust anchor file.
+47. **`caddy.service` Caddyfile Global Option Fix**:
+    - Corrected the global log configuration block directive from plural `logs` to singular `log` in `src/caddy-config/Caddyfile`, resolving a configuration syntax crash (`unrecognized global option: logs`).
 
 ## Goal ✅ ACHIEVED & SERVICES STABILIZED
 - GitHub Actions CI builds compile successfully, including updated configurations and recipes.

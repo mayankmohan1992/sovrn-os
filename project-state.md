@@ -106,5 +106,6 @@ Last updated: 2026-06-20 21:50
 - `validate-build.sh` false positive failure on `sovrn-complete-setup` (Fixed: added setup binary to python service lists).
 - `sovrnd.service` fails due to invalid `unix` parameter in `uvicorn.run` (Fixed: changed to `uds` parameter in `__main__.py`).
 - `unbound.service` fails due to missing `/var/lib/unbound/root.key` DNSSEC trust-anchor file (Fixed: added `dns-root-data` package to `debos-sovrn-ci.yaml` to install `/usr/share/dns/root.key`).
-- **All 10 Sovrn guest services and DNS resolver are confirmed running and healthy.**
+- `caddy.service` fails due to invalid Caddyfile global directive `logs` (Fixed: corrected to `log` in `src/caddy-config/Caddyfile`).
+- **All 10 Sovrn guest services, DNS resolver, and Caddy reverse-proxy web server are confirmed running and healthy.**
 
