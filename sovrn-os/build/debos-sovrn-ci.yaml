@@ -55,6 +55,9 @@ actions:
       - plymouth
       - plymouth-themes
       - sudo
+      - parted
+      - e2fsprogs
+      - dosfstools
 
   - action: run
     command: |
