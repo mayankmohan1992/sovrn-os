@@ -129,7 +129,7 @@ build_image() {
     log "Generating /etc/fstab..."
     cat > /tmp/sovrn-mnt/etc/fstab <<FSTAB
 LABEL=SOVRN_OS  /          ext4  defaults,errors=remount-ro  0  1
-LABEL=SOVRN_EFI /boot/efi  vfat  defaults,noautomount         0  2
+LABEL=SOVRN_EFI /boot/efi  vfat  defaults,nofail              0  2
 tmpfs           /tmp       tmpfs defaults,nosuid,nodev         0  0
 FSTAB
 
