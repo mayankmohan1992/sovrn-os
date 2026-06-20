@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Install Sovrn OS
 Comment=Install Sovrn OS to your hard drive
-Exec=/usr/bin/sovrn-install
+Exec=pkexec /usr/bin/sovrn-install
 Icon=drive-harddisk
 Type=Application
 Categories=System;Setup;
