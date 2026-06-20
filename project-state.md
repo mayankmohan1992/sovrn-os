@@ -46,6 +46,7 @@ Last updated: 2026-06-20 21:50
 3. ✅ **Caching working** — Rootfs tarball cached.
 4. **No KVM on CI** — `--disable-fakemachine` is required.
 5. ✅ **Boot validation complete** — Image downloaded and verified booting past GRUB menu, kernel load, and successfully reaching the OS desktop/login screen.
+6. ✅ **Installer end-to-end verified** — Patched `sovrn-install` to support CLI mode and partitioned with hybrid `bios_grub` + `esp` + `rootfs` scheme. Connected via SSH to QEMU guest and successfully executed a test installation to a 10 GB target drive with 100% success and no errors.
 
 ### Not blockers
 

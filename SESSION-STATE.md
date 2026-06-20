@@ -92,9 +92,17 @@ All source files and build artifacts live inside `sovrn-os/`. Commands must run 
     - Explicitly unmounted and detached the loop device in the success path to force sync writes to the `.img` file before upload.
 42. **`build-iso-image.sh` fstab ESP Mount Option**:
     - Replaced the invalid/non-standard `noautomount` option with `nofail` for the ESP (EFI System Partition) in `/etc/fstab`, preventing systemd from halting the boot process in emergency mode on a locked console.
+43. **`debos-sovrn-ci.yaml` Base Utilities**:
+    - Added `pkexec`, `parted`, `e2fsprogs`, and `dosfstools` to Stage 2/3 minimal packages lists so they are pre-installed in the OS, resolving missing formatting and privilege utilities in the live ISO environment.
+    - Added `openssh-server` to allow secure remote diagnostics and automated guest testing.
+44. **`sovrn-install` Installer Upgrade**:
+    - Rewrote the script to support a non-interactive CLI installation mode if the target drive is provided (e.g. `sudo sovrn-install /dev/sdb`), enabling testing over SSH.
+    - Added automatic generation of crucial directory structure mount points (`/dev`, `/proc`, `/sys`, etc.) to the target rootfs prior to mounting.
+    - Partitioned target drives with a 1MB `bios_grub` slot, a 512MB ESP, and an ext4 root partition, enabling the installer to set up both BIOS and UEFI boot loaders successfully.
 
 ## Goal ✅ ACHIEVED
 - GitHub Actions CI Run #25 completed successfully (green conclusion).
 - Hybrid image `sovrn-os-hybrid.img` downloaded, booted in QEMU legacy BIOS mode, and successfully verified booting past the GRUB menu, kernel load, and into the OS login/desktop screen.
+- Set up a passwordless SSH link over QEMU port forwarding, verified the CLI installer, fixed target partition layouts, and successfully performed an end-to-end OS installation onto a 10 GB virtual test drive.
 - All state files updated with latest results.
 
