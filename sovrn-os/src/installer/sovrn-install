@@ -111,6 +111,8 @@ run_install() {
         done
 
     echo "80"; echo "# Installing GRUB bootloader..."
+    mkdir -p /mnt/sovrn-target/{dev,proc,sys,run,mnt,tmp,media}
+    chmod 1777 /mnt/sovrn-target/tmp
     mount --bind /dev /mnt/sovrn-target/dev
     mount --bind /proc /mnt/sovrn-target/proc
     mount --bind /sys /mnt/sovrn-target/sys
