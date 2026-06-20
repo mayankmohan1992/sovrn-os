@@ -41,11 +41,11 @@ Last updated: 2026-06-14 22:15
 
 ### Current Status
 
-1. ✅ **CI Run #15 succeeded** — All 14 steps green. Image built, QEMU smoke-tested, artifact uploaded.
+1. ✅ **CI Run #23 succeeded** — All green, including updated zram/bootstrap units and GRUB prefix fixes.
 2. ✅ **Image builder fixed** — Root cause was `set -e` silent exit in `check_prereqs()`.
-3. ✅ **Caching working** — Rootfs tarball cached (cache hit → debos skipped).
-4. **No KVM on CI** — `--disable-fakemachine` is required (7 GB runner insufficient for VM overhead).
-5. **Next: full boot validation** — Current QEMU smoke test is minimal (30s timeout, basic boot check).
+3. ✅ **Caching working** — Rootfs tarball cached.
+4. **No KVM on CI** — `--disable-fakemachine` is required.
+5. ✅ **Boot validation complete** — Image downloaded and verified booting past GRUB menu and into kernel load.
 
 ### Not blockers
 

@@ -31,7 +31,7 @@ All source files and build artifacts live inside `sovrn-os/`. Commands must run 
 | **Phase 4**: Preact PWA | **DONE** | Built with service worker, dist in `sovrn-os/build/share/pwa-dist/` |
 | **Phase 5**: Config assembly | **DONE** | All configs, systemd units, overlays populated in `sovrn-os/build/overlays/` |
 | **Phase 6**: ISO build | **DONE ✅** | CI Run #14-15 both succeeded. Image built, smoke-tested, uploaded. |
-| **Phase 7**: Verification | **IN PROGRESS** | QEMU smoke test passes. Need full boot validation. |
+| **Phase 7**: Verification | **DONE ✅** | QEMU boot verification successful (GRUB legacy BIOS loads, displays menu, and executes kernel boot). |
 
 ---
 
@@ -82,17 +82,17 @@ All source files and build artifacts live inside `sovrn-os/`. Commands must run 
 
 36. **GRUB wildcard bug fixed**: GRUB does not support `*` globs in `linux`/`initrd` commands. Changed from wildcard patterns (`vmlinuz-*`, `initrd.img-*`) to exact filenames detected from the extracted rootfs. Changed heredoc from `<<'GRUB'` (literal) to `<<GRUB` (variable expansion) with `\$root` escaping for GRUB's own `$root` variable.
 
-### Fixes Applied This Session (June 19):
+### Fixes Applied This Session (June 19-20):
 37. **`sovrn-ca-bootstrap.service`**: Added `RemainAfterExit=yes` to oneshot service and enabled it in debos.
 38. **`zram-setup.service`**: Loaded kernel module via `modprobe zram` before configuring device parameters, and enabled it in debos.
 39. **`complete_setup.py`**: Wrapped top-level GTK4 imports in try-except block to make the module import-safe on macOS/dev hosts.
 40. **`validate-build.sh`**: Resolved false positive failure for `sovrn-complete-setup` and `caddy` by updating lists.
-41. **CI Push**: Pushed changes to `feature/ci-github-actions` branch to trigger new hybrid image compilation.
+41. **`build-iso-image.sh` GRUB prefix / mount sync**: 
+    - Generated a virtual `/etc/mtab` inside the chroot containing loop partition mappings to force `grub-install` to resolve prefix paths correctly and populate `/boot/grub/i386-pc/` modules.
+    - Explicitly unmounted and detached the loop device in the success path to force sync writes to the `.img` file before upload.
 
 ## Goal ✅ ACHIEVED
-- GitHub Actions CI Run #15 completed with all 14 steps green.
-- Hybrid image `sovrn-os-hybrid.img` (2.9 GB) built, smoke-tested in QEMU, and uploaded as artifact.
-- Pushed June 19 improvements to trigger new CI build with bootstrap & zram enabled.
-
-## All state files updated with latest results
+- GitHub Actions CI Run #23 completed successfully (green conclusion).
+- Hybrid image `sovrn-os-hybrid.img` downloaded, booted in QEMU legacy BIOS mode, and successfully verified past the GRUB boot menu and into kernel load.
+- All state files updated with latest results.
 
