@@ -28,7 +28,7 @@ health_method = "dht.health"
 [mesh_services.identity]
 name = "identity"
 socket_path = "/var/lib/sovrn/sockets/identity.sock"
-health_method = "identity.get_profile"
+health_method = "identity.health"
 
 # Presence service
 [mesh_services.presence]

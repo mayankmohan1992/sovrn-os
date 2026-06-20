@@ -70,6 +70,9 @@ async fn handle_connection(stream: tokio::net::UnixStream, service: Arc<Identity
 fn dispatch(service: &IdentityService, method: &str, params: Value) -> Result<Value> {
     let ks = service.key_store.lock().unwrap();
     match method {
+        "identity.health" => {
+            Ok(serde_json::json!({"status": "ok", "uptime_seconds": 0}))
+        }
         "identity.get_profile" => {
             let pubkey = params["public_key"].as_str().ok_or_else(|| anyhow!("missing public_key"))?;
             let profile = ks.get_profile(pubkey)?;

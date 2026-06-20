@@ -40,7 +40,7 @@ def create_app(config: Config) -> FastAPI:
     async def health():
         services = [
             ("dht", "dht.health"),
-            ("identity", "identity.get_profile"),
+            ("identity", "identity.health"),
             ("presence", "presence.get_online"),
             ("feed", "feed.health"),
             ("mq", "mq.health"),

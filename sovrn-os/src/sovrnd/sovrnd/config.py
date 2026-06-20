@@ -30,7 +30,7 @@ class Config:
 
     mesh_services: list[MeshServiceConfig] = field(default_factory=lambda: [
         MeshServiceConfig(name="dht", socket_path="/var/lib/sovrn/sockets/dht.sock", health_method="dht.health"),
-        MeshServiceConfig(name="identity", socket_path="/var/lib/sovrn/sockets/identity.sock", health_method="identity.get_profile"),
+        MeshServiceConfig(name="identity", socket_path="/var/lib/sovrn/sockets/identity.sock", health_method="identity.health"),
         MeshServiceConfig(name="presence", socket_path="/var/lib/sovrn/sockets/presence.sock", health_method="presence.get_online"),
         MeshServiceConfig(name="feed", socket_path="/var/lib/sovrn/sockets/feed.sock", health_method="feed.health"),
         MeshServiceConfig(name="mq", socket_path="/var/lib/sovrn/sockets/mq.sock", health_method="mq.health"),
