@@ -80,16 +80,18 @@ fi
 run_install() {
     echo "10"; echo "# Partitioning $TARGET..."
     parted -s "$TARGET" mklabel gpt || true
-    parted -s "$TARGET" mkpart primary fat32 1MiB 513MiB || true
-    parted -s "$TARGET" set 1 esp on || true
-    parted -s "$TARGET" mkpart primary ext4 513MiB 100% || true
+    parted -s "$TARGET" mkpart primary 1MiB 2MiB || true
+    parted -s "$TARGET" set 1 bios_grub on || true
+    parted -s "$TARGET" mkpart primary fat32 2MiB 514MiB || true
+    parted -s "$TARGET" set 2 esp on || true
+    parted -s "$TARGET" mkpart primary ext4 514MiB 100% || true
     sleep 1
 
     echo "20"; echo "# Formatting partitions..."
-    EFI_PART="${TARGET}1"
-    ROOT_PART="${TARGET}2"
-    [ ! -b "$EFI_PART" ] && EFI_PART="${TARGET}p1"
-    [ ! -b "$ROOT_PART" ] && ROOT_PART="${TARGET}p2"
+    EFI_PART="${TARGET}2"
+    ROOT_PART="${TARGET}3"
+    [ ! -b "$EFI_PART" ] && EFI_PART="${TARGET}p2"
+    [ ! -b "$ROOT_PART" ] && ROOT_PART="${TARGET}p3"
     mkfs.fat -F32 -n SOVRN_EFI "$EFI_PART" >/dev/null 2>&1 || true
     mkfs.ext4 -F -L SOVRN_OS "$ROOT_PART" >/dev/null 2>&1
 
