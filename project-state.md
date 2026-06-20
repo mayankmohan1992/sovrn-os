@@ -104,3 +104,7 @@ Last updated: 2026-06-20 21:50
 - `zram-setup.service` not enabled and missing `modprobe zram` (Fixed: prepended kernel module loading, enabled in debos).
 - Python GTK4 imports are at top level in `complete_setup.py` (Fixed: wrapped in import-safe try-except block).
 - `validate-build.sh` false positive failure on `sovrn-complete-setup` (Fixed: added setup binary to python service lists).
+- `sovrnd.service` fails due to invalid `unix` parameter in `uvicorn.run` (Fixed: changed to `uds` parameter in `__main__.py`).
+- `unbound.service` fails due to missing `/var/lib/unbound/root.key` DNSSEC trust-anchor file (Fixed: added `dns-root-data` package to `debos-sovrn-ci.yaml` to install `/usr/share/dns/root.key`).
+- **All 10 Sovrn guest services and DNS resolver are confirmed running and healthy.**
+

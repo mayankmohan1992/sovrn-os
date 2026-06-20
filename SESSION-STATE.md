@@ -99,10 +99,15 @@ All source files and build artifacts live inside `sovrn-os/`. Commands must run 
     - Rewrote the script to support a non-interactive CLI installation mode if the target drive is provided (e.g. `sudo sovrn-install /dev/sdb`), enabling testing over SSH.
     - Added automatic generation of crucial directory structure mount points (`/dev`, `/proc`, `/sys`, etc.) to the target rootfs prior to mounting.
     - Partitioned target drives with a 1MB `bios_grub` slot, a 512MB ESP, and an ext4 root partition, enabling the installer to set up both BIOS and UEFI boot loaders successfully.
+45. **`sovrnd.service` Uvicorn Parameter Fix**:
+    - Replaced the invalid `unix` parameter with `uds` in `uvicorn.run()` in the `sovrnd` orchestrator package entrypoint, resolving a runtime crash (`TypeError: run() got an unexpected keyword argument 'unix'`).
+46. **`unbound.service` DNSSEC Trust Anchor Fix**:
+    - Added the `dns-root-data` package to `debos-sovrn-ci.yaml`, which supplies the necessary `/usr/share/dns/root.key` root DNSSEC keys. This resolves unbound service failing to launch on startup due to a missing `/var/lib/unbound/root.key` trust anchor file.
 
-## Goal ✅ ACHIEVED
-- GitHub Actions CI Run #25 completed successfully (green conclusion).
-- Hybrid image `sovrn-os-hybrid.img` downloaded, booted in QEMU legacy BIOS mode, and successfully verified booting past the GRUB menu, kernel load, and into the OS login/desktop screen.
-- Set up a passwordless SSH link over QEMU port forwarding, verified the CLI installer, fixed target partition layouts, and successfully performed an end-to-end OS installation onto a 10 GB virtual test drive.
-- All state files updated with latest results.
+## Goal ✅ ACHIEVED & SERVICES STABILIZED
+- GitHub Actions CI builds compile successfully, including updated configurations and recipes.
+- Booted in QEMU and verified system stability.
+- Fixed `sovrnd` orchestrator parameter crash and `unbound` DNS resolver validation key crash, resulting in **all 10 Sovrn services running active and healthy**.
+- Installed and verified the hybrid GPT partition system onto a virtual `target.img` disk, which boots successfully in QEMU.
+- Committed and pushed all resolutions to the `feature/ci-github-actions` branch.
 
