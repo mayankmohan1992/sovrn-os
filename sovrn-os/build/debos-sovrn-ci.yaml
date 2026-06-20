@@ -133,6 +133,7 @@ actions:
       - wget
       - git
       - openssh-client
+      - openssh-server
 
   - action: run
     command: |
