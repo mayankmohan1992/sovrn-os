@@ -5,7 +5,7 @@
 {
     # Global options
     admin off
-    logs {
+    log {
         output file /var/log/sovrn/caddy-access.log
         format console
     }
