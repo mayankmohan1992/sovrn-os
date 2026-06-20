@@ -1,8 +1,8 @@
 # Sovrn OS — Project State
 
-## Current Status: ✅ CI BUILD SUCCEEDS — GRUB wildcard fix, image ready for USB boot
+## Current Status: ✅ CI BUILD SUCCEEDS — Boot validation verified past GRUB and into login/desktop screen
 
-Last updated: 2026-06-14 22:15
+Last updated: 2026-06-20 21:50
 
 ### Source Code Summary
 
@@ -41,11 +41,11 @@ Last updated: 2026-06-14 22:15
 
 ### Current Status
 
-1. ✅ **CI Run #23 succeeded** — All green, including updated zram/bootstrap units and GRUB prefix fixes.
+1. ✅ **CI Run #25 succeeded** — All green, including updated zram/bootstrap units, GRUB prefix fixes, and fstab ESP mount fix.
 2. ✅ **Image builder fixed** — Root cause was `set -e` silent exit in `check_prereqs()`.
 3. ✅ **Caching working** — Rootfs tarball cached.
 4. **No KVM on CI** — `--disable-fakemachine` is required.
-5. ✅ **Boot validation complete** — Image downloaded and verified booting past GRUB menu and into kernel load.
+5. ✅ **Boot validation complete** — Image downloaded and verified booting past GRUB menu, kernel load, and successfully reaching the OS desktop/login screen.
 
 ### Not blockers
 

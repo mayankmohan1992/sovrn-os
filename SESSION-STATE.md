@@ -90,9 +90,11 @@ All source files and build artifacts live inside `sovrn-os/`. Commands must run 
 41. **`build-iso-image.sh` GRUB prefix / mount sync**: 
     - Generated a virtual `/etc/mtab` inside the chroot containing loop partition mappings to force `grub-install` to resolve prefix paths correctly and populate `/boot/grub/i386-pc/` modules.
     - Explicitly unmounted and detached the loop device in the success path to force sync writes to the `.img` file before upload.
+42. **`build-iso-image.sh` fstab ESP Mount Option**:
+    - Replaced the invalid/non-standard `noautomount` option with `nofail` for the ESP (EFI System Partition) in `/etc/fstab`, preventing systemd from halting the boot process in emergency mode on a locked console.
 
 ## Goal ✅ ACHIEVED
-- GitHub Actions CI Run #23 completed successfully (green conclusion).
-- Hybrid image `sovrn-os-hybrid.img` downloaded, booted in QEMU legacy BIOS mode, and successfully verified past the GRUB boot menu and into kernel load.
+- GitHub Actions CI Run #25 completed successfully (green conclusion).
+- Hybrid image `sovrn-os-hybrid.img` downloaded, booted in QEMU legacy BIOS mode, and successfully verified booting past the GRUB menu, kernel load, and into the OS login/desktop screen.
 - All state files updated with latest results.
 
