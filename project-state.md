@@ -107,5 +107,6 @@ Last updated: 2026-06-20 21:50
 - `sovrnd.service` fails due to invalid `unix` parameter in `uvicorn.run` (Fixed: changed to `uds` parameter in `__main__.py`).
 - `unbound.service` fails due to missing `/var/lib/unbound/root.key` DNSSEC trust-anchor file (Fixed: added `dns-root-data` package to `debos-sovrn-ci.yaml` to install `/usr/share/dns/root.key`).
 - `caddy.service` fails due to invalid Caddyfile global directive `logs` (Fixed: corrected to `log` in `src/caddy-config/Caddyfile`).
-- **All 10 Sovrn guest services, DNS resolver, and Caddy reverse-proxy web server are confirmed running and healthy.**
+- `sovrn-identity` health check failure due to missing `public_key` argument in `get_profile` check (Fixed: implemented a dedicated `identity.health` RPC method and updated `sovrnd` config to use it).
+- **All 10 Sovrn guest services, DNS resolver, and Caddy reverse-proxy web server are confirmed running and 100% healthy (API status: healthy).**
 

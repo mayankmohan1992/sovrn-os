@@ -105,11 +105,14 @@ All source files and build artifacts live inside `sovrn-os/`. Commands must run 
     - Added the `dns-root-data` package to `debos-sovrn-ci.yaml`, which supplies the necessary `/usr/share/dns/root.key` root DNSSEC keys. This resolves unbound service failing to launch on startup due to a missing `/var/lib/unbound/root.key` trust anchor file.
 47. **`caddy.service` Caddyfile Global Option Fix**:
     - Corrected the global log configuration block directive from plural `logs` to singular `log` in `src/caddy-config/Caddyfile`, resolving a configuration syntax crash (`unrecognized global option: logs`).
+48. **`sovrn-identity` Health Check Implementation**:
+    - Implemented a dedicated JSON-RPC `identity.health` method in `src/sovrn-identity/src/rpc.rs` and updated `sovrnd` config (`app.py`, `config.py`, `sovrnd.toml`) to target this new health endpoint. This resolves a false-negative health check degradation where the API health checker previously invoked `identity.get_profile` without parameters, causing a `missing public_key` exception.
 
-## Goal ✅ ACHIEVED & SERVICES STABILIZED
+## Goal ✅ ACHIEVED & SERVICES 100% HEALTHY
 - GitHub Actions CI builds compile successfully, including updated configurations and recipes.
 - Booted in QEMU and verified system stability.
-- Fixed `sovrnd` orchestrator parameter crash and `unbound` DNS resolver validation key crash, resulting in **all 10 Sovrn services running active and healthy**.
+- Fixed `sovrnd` orchestrator parameter crash, `unbound` DNS resolver validation key crash, and `sovrn-identity` health check RPC layout.
+- **Confirmed overall API status is `healthy` with all 10 Sovrn services active, running, and green**.
 - Installed and verified the hybrid GPT partition system onto a virtual `target.img` disk, which boots successfully in QEMU.
 - Committed and pushed all resolutions to the `feature/ci-github-actions` branch.
 
