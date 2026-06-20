@@ -1,36 +1,83 @@
 #!/bin/bash
 # Sovrn OS Installer — copies the running system to a target disk
-# Requires: zenity, rsync, parted, grub-install
+# Requires: rsync, parted, grub-install
+# Optional: zenity (for GUI mode)
 set -euo pipefail
 
-[ "$(id -u)" -eq 0 ] || { zenity --error --text="Run this as root: sudo sovrn-install"; exit 1; }
+CLI_MODE=0
+TARGET=""
 
-for cmd in parted rsync grub-install mkfs.ext4 mkfs.fat losetup; do
-    command -v "$cmd" >/dev/null 2>&1 || { zenity --error --text="Missing: $cmd"; exit 1; }
-done
-
-if ! zenity --question --title="Sovrn OS Installer" \
-    --text="This will DESTROY ALL DATA on the selected disk.\nBack up any important files first.\n\nProceed?" --no-wrap; then
-    exit 1
+# Parse argument
+if [ -n "${1:-}" ]; then
+    CLI_MODE=1
+    TARGET="$1"
+    if [ ! -b "$TARGET" ]; then
+        echo "Error: $TARGET is not a valid block device." >&2
+        exit 1
+    fi
 fi
 
-DEVICES=()
-SIZES=()
-while read -r name size; do
-    [ "$name" = "loop*" ] && continue
-    DEVICES+=("/dev/$name" "$size")
-done < <(lsblk -dno NAME,SIZE -e 7,11)
+# Root check
+[ "$(id -u)" -eq 0 ] || {
+    if [ "$CLI_MODE" -eq 1 ]; then
+        echo "Error: Run this script as root: sudo sovrn-install $TARGET" >&2
+    else
+        zenity --error --text="Run this as root: sudo sovrn-install"
+    fi
+    exit 1
+}
 
-TARGET=$(zenity --list --title="Select Target Disk" \
-    --text="Choose the disk to install Sovrn OS onto (all data will be erased):" \
-    --column="Device" --column="Size" "${DEVICES[@]}" --width=400 --height=300)
+# Prerequisites check
+for cmd in parted rsync grub-install mkfs.ext4 mkfs.fat; do
+    command -v "$cmd" >/dev/null 2>&1 || {
+        if [ "$CLI_MODE" -eq 1 ]; then
+            echo "Error: Missing required command: $cmd" >&2
+        else
+            zenity --error --text="Missing command: $cmd"
+        fi
+        exit 1
+    }
+done
 
-[ -z "$TARGET" ] && exit 1
+# Confirm and select target if in GUI mode
+if [ "$CLI_MODE" -eq 0 ]; then
+    command -v zenity >/dev/null 2>&1 || {
+        echo "Zenity not found. Running in CLI mode."
+        echo "Usage: sudo sovrn-install /dev/sdX"
+        exit 1
+    }
 
-zenity --question --title="Confirm Install" \
-    --text="Install Sovrn OS to $TARGET?\n\nAll data on $TARGET will be DESTROYED." --no-wrap || exit 1
+    if ! zenity --question --title="Sovrn OS Installer" \
+        --text="This will DESTROY ALL DATA on the selected disk.\nBack up any important files first.\n\nProceed?" --no-wrap; then
+        exit 1
+    fi
 
-(
+    DEVICES=()
+    while read -r name size; do
+        [ "$name" = "loop*" ] && continue
+        DEVICES+=("/dev/$name" "$size")
+    done < <(lsblk -dno NAME,SIZE -e 7,11)
+
+    TARGET=$(zenity --list --title="Select Target Disk" \
+        --text="Choose the disk to install Sovrn OS onto (all data will be erased):" \
+        --column="Device" --column="Size" "${DEVICES[@]}" --width=400 --height=300)
+
+    [ -z "$TARGET" ] && exit 1
+
+    zenity --question --title="Confirm Install" \
+        --text="Install Sovrn OS to $TARGET?\n\nAll data on $TARGET will be DESTROYED." --no-wrap || exit 1
+else
+    # CLI confirmation
+    echo "WARNING: This will DESTROY ALL DATA on $TARGET!"
+    read -p "Are you sure you want to proceed? (y/N): " -r confirm
+    if [[ ! "$confirm" =~ ^[yY]$ ]]; then
+        echo "Installation cancelled."
+        exit 1
+    fi
+fi
+
+# The installation runner
+run_install() {
     echo "10"; echo "# Partitioning $TARGET..."
     parted -s "$TARGET" mklabel gpt || true
     parted -s "$TARGET" mkpart primary fat32 1MiB 513MiB || true
@@ -90,12 +137,23 @@ FSTAB
     rm -rf /mnt/sovrn-target
 
     echo "100"
-) | zenity --progress --title="Installing Sovrn OS" \
-    --text="Starting..." --percentage=0 --auto-close --width=400
+}
 
-if [ $? -eq 0 ]; then
-    zenity --info --title="Installation Complete" \
-        --text="Sovrn OS has been installed to $TARGET.\n\nReboot and boot from the target disk to start using Sovrn OS." --no-wrap
+if [ "$CLI_MODE" -eq 1 ]; then
+    run_install | while read -r line; do
+        if [[ "$line" =~ ^#\ (.*) ]]; then
+            echo "[Progress] ${BASH_REMATCH[1]}"
+        elif [[ "$line" =~ ^[0-9]+$ ]]; then
+            echo "[Percent] ${line}%"
+        fi
+    done
+    echo "Installation completed successfully!"
 else
-    zenity --error --text="Installation failed or was cancelled.\nCheck the target disk and try again."
+    if run_install | zenity --progress --title="Installing Sovrn OS" \
+        --text="Starting..." --percentage=0 --auto-close --width=400; then
+        zenity --info --title="Installation Complete" \
+            --text="Sovrn OS has been installed to $TARGET.\n\nReboot and boot from the target disk to start using Sovrn OS." --no-wrap
+    else
+        zenity --error --text="Installation failed or was cancelled.\nCheck the target disk and try again."
+    fi
 fi
