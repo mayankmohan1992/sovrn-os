@@ -118,12 +118,19 @@ run_install() {
     mount --bind /dev /mnt/sovrn-target/dev
     mount --bind /proc /mnt/sovrn-target/proc
     mount --bind /sys /mnt/sovrn-target/sys
-    chroot /mnt/sovrn-target /bin/bash -c "
-        grub-install --target=i386-pc '$TARGET'
-        grub-install --target=x86_64-efi --removable \
-            --efi-directory=/boot/efi --boot-directory=/boot --no-nvram || true
-        update-grub
-    " || true
+
+    # Attempt to mount efivarfs in case we need EFI variable registration, but we will also install fallback removable EFI
+    mkdir -p /mnt/sovrn-target/sys/firmware/efi/efivars
+    mount -t efivarfs efivarfs /mnt/sovrn-target/sys/firmware/efi/efivars 2>/dev/null || true
+
+    # Install both UEFI and Legacy BIOS GRUB configurations to target disk for maximum compatibility
+    echo "[Info] Installing Legacy BIOS bootloader to $TARGET..."
+    chroot /mnt/sovrn-target grub-install --target=i386-pc "$TARGET" || echo "Warning: Legacy BIOS bootloader installation failed"
+
+    echo "[Info] Installing UEFI bootloader..."
+    chroot /mnt/sovrn-target grub-install --target=x86_64-efi --efi-directory=/boot/efi --boot-directory=/boot --no-nvram --removable || echo "Warning: UEFI bootloader installation failed"
+
+    chroot /mnt/sovrn-target update-grub
 
     echo "90"; echo "# Generating fstab..."
     chroot /mnt/sovrn-target /bin/bash -c "
@@ -134,7 +141,23 @@ tmpfs           /tmp       tmpfs defaults,nosuid,nodev         0  0
 FSTAB
     " || true
 
+    echo "92"; echo "# Removing installer application options from installed system..."
+    # Run inside chroot to purge calamares package
+    chroot /mnt/sovrn-target /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get purge -y calamares >/dev/null 2>&1" || true
+    chroot /mnt/sovrn-target /bin/bash -c "DEBIAN_FRONTEND=noninteractive apt-get autoremove -y >/dev/null 2>&1" || true
+    
+    # Explicitly delete the desktop files and script files directly from the mount point, ensuring they are gone!
+    rm -f /mnt/sovrn-target/usr/share/applications/sovrn-install.desktop
+    rm -f /mnt/sovrn-target/usr/share/applications/*calamares*.desktop
+    rm -f /mnt/sovrn-target/usr/share/applications/io.calamares.calamares.desktop
+    rm -f /mnt/sovrn-target/usr/bin/sovrn-install
+    
+    # Reset OOBE setup status for the installed system so they can do a fresh setup on boot
+    rm -f /mnt/sovrn-target/var/lib/sovrn/oobe-complete
+    rm -f /mnt/sovrn-target/var/lib/sovrn/setup-complete
+
     echo "95"; echo "# Cleaning up..."
+    umount /mnt/sovrn-target/sys/firmware/efi/efivars 2>/dev/null || true
     umount /mnt/sovrn-target/dev /mnt/sovrn-target/proc /mnt/sovrn-target/sys 2>/dev/null || true
     umount /mnt/sovrn-target/boot/efi 2>/dev/null || true
     umount /mnt/sovrn-target 2>/dev/null || true

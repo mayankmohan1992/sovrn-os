@@ -87,10 +87,45 @@ impl KeyStore {
 
     pub fn store_profile(&self, id: &str, name: Option<&str>, about: Option<&str>, domain: Option<&str>) -> Result<()> {
         self.conn.execute(
-            "INSERT OR REPLACE INTO profiles (id, name, about, domain) VALUES (?1, ?2, ?3, ?4)",
+            "INSERT INTO profiles (id, name, about, domain) VALUES (?1, ?2, ?3, ?4)
+             ON CONFLICT(id) DO UPDATE SET
+                name = COALESCE(?2, name),
+                about = COALESCE(?3, about),
+                domain = COALESCE(?4, domain),
+                updated_at = (strftime('%s','now'))",
             (id, name, about, domain),
         )?;
         Ok(())
+    }
+
+    pub fn list_all_identities(&self) -> Result<Vec<(String, String, String)>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT k.pubkey_hash, COALESCE(p.name, 'Anonymous'), COALESCE(p.domain, '')
+             FROM keys k
+             LEFT JOIN profiles p ON k.id = p.id"
+        )?;
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get(0)?, row.get(1)?, row.get(2)?))
+        })?;
+        let mut result = Vec::new();
+        for row in rows {
+            result.push(row?);
+        }
+        Ok(result)
+    }
+
+    pub fn list_all_domains(&self) -> Result<Vec<(String, String)>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT name, domain FROM aliases"
+        )?;
+        let rows = stmt.query_map([], |row| {
+            Ok((row.get(0)?, row.get(1)?))
+        })?;
+        let mut result = Vec::new();
+        for row in rows {
+            result.push(row?);
+        }
+        Ok(result)
     }
 
     pub fn get_profile(&self, pubkey_hash: &str) -> Result<Option<(String, Option<String>, Option<String>, Option<String>, Option<String>)>> {

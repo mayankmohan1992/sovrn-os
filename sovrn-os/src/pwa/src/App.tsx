@@ -6,6 +6,7 @@ import { Messages } from './pages/Messages';
 import { Profile } from './pages/Profile';
 import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
+import { Directory } from './pages/Directory';
 import { useState, useCallback } from 'preact/hooks';
 import { signal } from '@preact/signals';
 
@@ -37,6 +38,7 @@ export function App() {
             <Route path="/messages/:peerId?" component={Messages} />
             <Route path="/profile/:pubkey?" component={Profile} />
             <Route path="/settings" component={Settings} />
+            <Route path="/directory" component={Directory} />
           </Router>
         </main>
       </div>

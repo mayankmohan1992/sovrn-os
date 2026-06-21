@@ -87,6 +87,12 @@ export const api = {
   cdnStatus: (pushId: string) =>
     apiFetch(`/cdn/status/${pushId}`),
 
+  // Directory
+  getDirectoryUsers: () =>
+    apiFetch('/identity/directory/users'),
+  getDirectoryDomains: () =>
+    apiFetch('/identity/directory/domains'),
+
   // Health
   health: () => apiFetch('/health'),
 };
