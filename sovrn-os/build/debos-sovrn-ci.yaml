@@ -196,6 +196,7 @@ actions:
       mkdir -p /var/lib/sovrn/pwa-dist
       mkdir -p /var/log/sovrn
       mkdir -p /etc/sovrn/ca
+      mkdir -p /var/lib/yggdrasil
       mkdir -p /usr/share/backgrounds/sovrn
       mkdir -p /etc/sovrn/scripts
       adduser --system --group --home /var/lib/sovrn --shell /usr/sbin/nologin sovrn 2>/dev/null || true

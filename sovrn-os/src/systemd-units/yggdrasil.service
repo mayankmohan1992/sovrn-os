@@ -5,9 +5,10 @@ Wants=NetworkManager.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/yggdrasil -useconffile /etc/sovrn/yggdrasil.conf
+ExecStart=/usr/sbin/yggdrasil -useconffile /etc/sovrn/yggdrasil.conf
 Restart=on-failure
 RestartSec=5
+RuntimeDirectory=yggdrasil
 
 NoNewPrivileges=yes
 ProtectSystem=strict

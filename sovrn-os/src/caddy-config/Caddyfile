@@ -22,12 +22,12 @@ localhost:54772, 127.0.0.1:54772 {
 
     # API reverse proxy to sovrnd
     handle /api/* {
-        reverse_proxy unix//var/lib/sovrn/sockets/sovrnd.sock
+        reverse_proxy 127.0.0.1:54771
     }
 
     # WebSocket proxy
     handle /ws {
-        reverse_proxy unix//var/lib/sovrn/sockets/sovrnd.sock
+        reverse_proxy 127.0.0.1:54771
     }
 
     # PWA static files

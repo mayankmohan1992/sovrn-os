@@ -42,15 +42,37 @@ def load_config(path: str) -> Config:
     cfg = Config()
     try:
         data = tomllib.loads(Path(path).read_text())
-        cfg.host = data.get("host", cfg.host)
-        cfg.port = data.get("port", cfg.port)
-        cfg.unix_socket = data.get("unix_socket", cfg.unix_socket)
-        cfg.log_level = data.get("log_level", cfg.log_level)
-        cfg.sockets_dir = data.get("sockets_dir", cfg.sockets_dir)
-        cfg.data_dir = data.get("data_dir", cfg.data_dir)
-        cfg.jwt_secret = data.get("jwt_secret", cfg.jwt_secret)
-        cfg.jwt_algorithm = data.get("jwt_algorithm", cfg.jwt_algorithm)
-        cfg.jwt_expiry_hours = data.get("jwt_expiry_hours", cfg.jwt_expiry_hours)
+        
+        # Load server section
+        server = data.get("server", {})
+        cfg.host = server.get("host", data.get("host", cfg.host))
+        cfg.port = server.get("port", data.get("port", cfg.port))
+        cfg.unix_socket = server.get("unix_socket", data.get("unix_socket", cfg.unix_socket))
+        cfg.log_level = server.get("log_level", data.get("log_level", cfg.log_level))
+        
+        # Load paths section
+        paths = data.get("paths", {})
+        cfg.sockets_dir = paths.get("sockets_dir", data.get("sockets_dir", cfg.sockets_dir))
+        cfg.data_dir = paths.get("data_dir", data.get("data_dir", cfg.data_dir))
+        
+        # Load auth section
+        auth = data.get("auth", {})
+        cfg.jwt_secret = auth.get("jwt_secret", data.get("jwt_secret", cfg.jwt_secret))
+        cfg.jwt_algorithm = auth.get("jwt_algorithm", data.get("jwt_algorithm", cfg.jwt_algorithm))
+        cfg.jwt_expiry_hours = auth.get("jwt_expiry_hours", data.get("jwt_expiry_hours", cfg.jwt_expiry_hours))
+        
+        # Load mesh_services section if present
+        if "mesh_services" in data:
+            services_data = data["mesh_services"]
+            mesh_services = []
+            for name, svc_data in services_data.items():
+                mesh_services.append(MeshServiceConfig(
+                    name=svc_data.get("name", name),
+                    socket_path=svc_data.get("socket_path", ""),
+                    health_method=svc_data.get("health_method", "health"),
+                ))
+            if mesh_services:
+                cfg.mesh_services = mesh_services
     except FileNotFoundError:
         pass  # Use defaults
     except Exception as e:

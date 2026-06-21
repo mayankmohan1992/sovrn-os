@@ -78,7 +78,9 @@ mkdir -p "$OVERLAY_DIR/etc/etc/caddy"
 mkdir -p "$OVERLAY_DIR/etc/etc/nftables"
 mkdir -p "$OVERLAY_DIR/etc/etc/unbound"
 mkdir -p "$OVERLAY_DIR/etc/etc/sovrn/ca"
+mkdir -p "$OVERLAY_DIR/etc/etc/tmpfiles.d"
 
+cp "$PROJECT_DIR"/src/tmpfiles.d/sovrn.conf "$OVERLAY_DIR/etc/etc/tmpfiles.d/"
 cp "$PROJECT_DIR"/src/caddy-config/Caddyfile "$OVERLAY_DIR/etc/etc/caddy/"
 # Strip the sovrn_auth block — vanilla Caddy (from Debian) doesn't have the custom auth plugin
 # The auth plugin requires xcaddy which is only available on Linux

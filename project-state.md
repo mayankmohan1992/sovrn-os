@@ -108,5 +108,9 @@ Last updated: 2026-06-20 21:50
 - `unbound.service` fails due to missing `/var/lib/unbound/root.key` DNSSEC trust-anchor file (Fixed: added `dns-root-data` package to `debos-sovrn-ci.yaml` to install `/usr/share/dns/root.key`).
 - `caddy.service` fails due to invalid Caddyfile global directive `logs` (Fixed: corrected to `log` in `src/caddy-config/Caddyfile`).
 - `sovrn-identity` health check failure due to missing `public_key` argument in `get_profile` check (Fixed: implemented a dedicated `identity.health` RPC method and updated `sovrnd` config to use it).
+- `sovrnd` orchestrator config parsing bug where properties under nested tables (`[server]`, `[paths]`, `[auth]`) were ignored (Fixed: updated `load_config` in `src/sovrnd/sovrnd/config.py` to properly inspect nested tables).
+- Caddy routing failures (502 Bad Gateway) for API requests (Fixed: updated reverse proxy destinations in `src/caddy-config/Caddyfile` and live-patched the guest config to direct requests to the correct TCP port `127.0.0.1:54771` instead of the non-existent UDS socket).
+- `yggdrasil.service` fail-restart loop caused by incorrect binary path, missing `/var/lib/yggdrasil`, and missing `/run/yggdrasil/` runtime directory (Fixed: changed binary path to `/usr/sbin/yggdrasil`, added `RuntimeDirectory=yggdrasil` to the service, and added `/var/lib/yggdrasil` to `tmpfiles.d/sovrn.conf` to guarantee its presence).
 - **All 10 Sovrn guest services, DNS resolver, and Caddy reverse-proxy web server are confirmed running and 100% healthy (API status: healthy).**
+- **First-time user identity creation and auto-login flow verified end-to-end via the PWA Hub UI (https://localhost:54772/) with zero 502/routing errors.**
 

@@ -106,13 +106,16 @@ All source files and build artifacts live inside `sovrn-os/`. Commands must run 
 47. **`caddy.service` Caddyfile Global Option Fix**:
     - Corrected the global log configuration block directive from plural `logs` to singular `log` in `src/caddy-config/Caddyfile`, resolving a configuration syntax crash (`unrecognized global option: logs`).
 48. **`sovrn-identity` Health Check Implementation**:
-    - Implemented a dedicated JSON-RPC `identity.health` method in `src/sovrn-identity/src/rpc.rs` and updated `sovrnd` config (`app.py`, `config.py`, `sovrnd.toml`) to target this new health endpoint. This resolves a false-negative health check degradation where the API health checker previously invoked `identity.get_profile` without parameters, causing a `missing public_key` exception.
+    - Implemented a dedicated JSON-RPC `identity.health` method in `src/sovrn-identity/src/rpc.rs` and updated `sovrnd` config (`app.py`, `config.py`, `sovrnd.toml`) to target this new health endpoint. This resolves a false-negative health check degradation.
+- `sovrnd` orchestrator config parsing bug where properties under nested tables (`[server]`, `[paths]`, `[auth]`) were ignored (Fixed: updated `load_config` in `src/sovrnd/sovrnd/config.py` to properly inspect nested tables).
+- Caddy routing failures (502 Bad Gateway) for API requests (Fixed: updated reverse proxy destinations in `src/caddy-config/Caddyfile` and live-patched the guest config to direct requests to the correct TCP port `127.0.0.1:54771` instead of the non-existent UDS socket).
+- `yggdrasil.service` fail-restart loop caused by incorrect binary path, missing `/var/lib/yggdrasil`, and missing `/run/yggdrasil/` runtime directory (Fixed: changed binary path to `/usr/sbin/yggdrasil`, added `RuntimeDirectory=yggdrasil` to the service, and added `/var/lib/yggdrasil` to `tmpfiles.d/sovrn.conf` to guarantee its presence).
 
 ## Goal ✅ ACHIEVED & SERVICES 100% HEALTHY
 - GitHub Actions CI builds compile successfully, including updated configurations and recipes.
 - Booted in QEMU and verified system stability.
 - Fixed `sovrnd` orchestrator parameter crash, `unbound` DNS resolver validation key crash, and `sovrn-identity` health check RPC layout.
-- **Confirmed overall API status is `healthy` with all 10 Sovrn services active, running, and green**.
+- Confirmed overall API status is `healthy` with all 10 Sovrn services active, running, and green.
 - Installed and verified the hybrid GPT partition system onto a virtual `target.img` disk, which boots successfully in QEMU.
+- Resolved local identity creation blocking issue end-to-end, enabling registration and login from the PWA Hub UI (https://localhost:54772/) with zero errors.
 - Committed and pushed all resolutions to the `feature/ci-github-actions` branch.
-
