@@ -68,7 +68,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: sovrn-os/build/sovrn-os-rootfs.tar.gz
-          key: rootfs-${{ hashFiles('sovrn-os/build/debos-sovrn-ci.yaml', 'sovrn-os/src/systemd-units/*', 'sovrn-os/build/overlays/**') }}
+          key: rootfs-${{ hashFiles('sovrn-os/build/debos-sovrn-ci.yaml', 'sovrn-os/src/**', 'sovrn-os/scripts/**') }}
           restore-keys: |
             rootfs-
 
